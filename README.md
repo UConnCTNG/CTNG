@@ -1,4 +1,4 @@
-# FirefoxCertificateDemo
+# CTNG
  
  In order to run this:
   - Go to Firefox "Manage Your Extensions" page
