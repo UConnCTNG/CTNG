@@ -20,7 +20,7 @@ function queryMonitor(period, theUrl) {
  
     return xmlHttp.responseText; // returns ClientUpdate json payload (not parsed)
  
-    // TODO: update the function to send request for every missing period
+    // TODO:update the function to send request for every missing period
  }
 
  /*
