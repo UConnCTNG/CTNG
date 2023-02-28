@@ -1,0 +1,20 @@
+{
+    "manifest_version": 2,
+    "name": "Store Browser Info",
+    "version": "1.0",
+
+    "description": "Trying to store information",
+
+    "background": {
+        "scripts": ["background.js"]
+    },
+
+    "permissions": [
+        "webNavigation",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>",
+        "storage",
+        "unlimitedStorage"
+    ]
+}

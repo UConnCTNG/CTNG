@@ -1,0 +1,10 @@
+{
+    "ClientUpdateTest": {
+        "STHs": "test_sth",
+        "REVs":	"test_rev",
+        "PoMs":	"test_pom",
+        "MonitorId": "test_id",
+        "Period": 0,
+        "PoMsig": "test_sig"
+    }
+}
