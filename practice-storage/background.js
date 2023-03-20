@@ -1,42 +1,32 @@
 // currently stores the sths correctly...
-console.log("hi is this working?");
+// console.log("hi is this working?");
 
-fetch("http://localhost:3000/STHs")
+fetch("http://localhost:3000/?period=0") // have to specify each url to access a certain resource 
     .then(response => response.json())
     .then(function(data) {
         
-        // creates sth array
-        var sths = [];
+        // creates sth array (jobin has this)
+        //var sths = [];
 
-        // orig data
+        // check orig data
+        console.log("The following data is the original payload:")
         console.log(data);
+        console.log(data.type);
 
-        // stores the actual sths into the array that was just made
-        for (var i = 0; i < data.length; i++) {
-            sths.push(data[i]); 
+        var parsedUpdate = JSON.parse(data);
+        console.log(parsedUpdate.type);
+        // stores the actual sths into the array that was just made (jobin has this)
+        /*for (var i = 0; i < data.length; i++) {
+            sths.push(data.STHs[i]); 
         }
         
-        // check if exact same as orig data
+        // check if sths array is exact same as orig data
+        console.log("The following data is the STHs array:")
         console.log(sths);
 
-        // store sths
-        browser.storage.local.set({sths});
+        // store sths into local storage (local to the machine that the extension is installed on)
+        browser.storage.local.set({sths});*/
     });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
