@@ -1,3 +1,41 @@
+
+fetch('http://localhost:3000/?period=0')
+  .then(response => response.text())
+  .then(text => {
+    const data = JSON.parse(text);
+    console.log(typeof data);
+
+    console.log("The following data is the original payload:")
+    console.log(data);
+
+    var sths = []
+    for (var i = 0; i < Object.keys(data.STHs).length; i++) {
+        sths.push(data.STHs[i]);
+    }
+    console.log("The following data is the STHs array:")
+    console.log(sths);
+
+    browser.storage.local.set({sths});
+
+  });
+
+
+
+/*fetch("http://localhost:3000/?period=0").then((response) => {
+    console.log(response.type);
+
+    const contentType = response.headers.get("content-type");
+    console.log(contentType);
+    console.log(response)
+
+    const obj = JSON.parse(JSON.stringify(response));
+
+  });
+*/
+
+
+
+/*
 // currently stores the sths correctly...
 // console.log("hi is this working?");
 
@@ -11,7 +49,9 @@ fetch("http://localhost:3000/?period=0") // have to specify each url to access a
         // check orig data
         console.log("The following data is the original payload:")
         console.log(data);
-        console.log(data.type);
+        //console.log(data.type);
+        const contentType = data.headers.get("content-type");
+        console.log(contentType);
 
         var parsedUpdate = JSON.parse(data);
         console.log(parsedUpdate.type);
@@ -26,9 +66,7 @@ fetch("http://localhost:3000/?period=0") // have to specify each url to access a
 
         // store sths into local storage (local to the machine that the extension is installed on)
         browser.storage.local.set({sths});*/
-    });
-
-
+    
 
         // jobin's parsing code
         //var parsedUpdate = JSON.parse(data);
