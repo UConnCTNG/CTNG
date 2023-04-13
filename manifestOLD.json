@@ -1,0 +1,39 @@
+{
+  "manifest_version": 2,
+  "name": "CTNG",
+  "version": "1.0",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "src/bundle.js",
+        "src/client.js"
+      ]
+    }
+  ],
+  "description": "CTNG project.",
+  "applications": {
+    "gecko": {
+      "id": "firefox-extensions-with-selenium@uconn.edu"
+    }
+  },
+  "browser_action": {
+    "default_icon": "icons/beasts-32.png",
+    "default_title": "CTNG",
+    "default_popup": "index.html"
+  },
+  "icons": {
+      "48": "icons/border-48.png"
+  },
+  "background": {
+      "page": "index.html",
+      "scripts": ["background.js", "src/client.js", "src/bundle.js"]
+  },
+  "permissions": [
+      "webRequest",
+      "webRequestBlocking",
+      "<all_urls>",
+      "storage",
+      "unlimitedStorage"
+  ]
+}

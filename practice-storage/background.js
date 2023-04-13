@@ -1,3 +1,54 @@
+import { Client } from "../src/client.js";
+
+// var http = require('http');
+
+var option = {
+    hostname : "localhost" ,
+    port : 3000 ,
+    method : "POST",
+    path : "/"
+} 
+
+
+var log = console.log.bind(console)
+var github_sites = { urls: ["https://github.com/"]}
+
+// https://developer.chrome.com/extensions/match_patterns
+var ALL_SITES = { urls: ['<all_urls>'] }
+var client = new Client(log)
+
+// Mozilla doesn't use tlsInfo in extraInfoSpec 
+var extraInfoSpec = ['blocking', "responseHeaders"]; 
+
+log("Certificate listener initialized.")   
+
+browser.webRequest.onHeadersReceived.addListener(async function(details){
+    var requestId = details.requestId
+    var securityInfo = await browser.webRequest.getSecurityInfo(requestId, {
+        certificateChain: true,
+        rawDER: false
+    });
+    //log(securityInfo);
+    log("Got the cert!")
+    // const privateKey = bls.utils.randomPrivateKey();
+    // console.log('Private key:', privateKey);
+
+    // const publicKey = bls.getPublicKey(privateKey);
+    // console.log('Public key:', publicKey);
+
+    let cert = client.parseCertificate(securityInfo)
+
+    // var request = http.request(option , function(resp){
+    //     resp.on("data",function(chunck){
+    //         console.log(chunck.toString());
+    //     }) 
+    //  })
+    //  request.end();
+
+}, ALL_SITES, extraInfoSpec) 
+
+browser.storage.local.onChanged.addListener(client.logStorageUpdate)
+
 
 // if period=0
 fetch('http://localhost:3000/?period=0')
@@ -208,7 +259,7 @@ fetch('http://localhost:3000/?period=3')
   });
 
 function onGot(data) {
-  var certCA = "" // have to get this from certificate info, LAST THING!
+  var certCA = data.cert.issuer
   loggers = ["localhost:9000","localhost:9001", "localhost:9002"]
 
   var conLoggerCount = 0
@@ -221,7 +272,7 @@ function onGot(data) {
       conLoggerCount += 1;
     }
   }
-
+  
   var accPOMs = []
   for (var i = 0; i < data.accs1.length; i++) {
     accPOMs.push(data.accs1[i].payload[0])
@@ -254,8 +305,9 @@ function onError(error) {
 }
   
 function checkPOM() {
-  let gettingItem = browser.storage.local.get(["cons1", "accs1"]);
+  let gettingItem = browser.storage.local.get(["cons1", "accs1", "cert"]);
   gettingItem.then(onGot, onError);
 }
 
 checkPOM();
+
