@@ -1,6 +1,5 @@
 import { cert } from "./config.js"
 
-
 //const {cert} = require("./config.js")
 class Client {
   
@@ -30,9 +29,6 @@ class Client {
   parseCertificate(securityInfo) {
     var cert = securityInfo.certificates[0]
     var subjectString = cert.subject.split('=')
-    //this.log(cert.subject) //"CN=github.com,O="GitHub, Inc.",L=San Francisco,ST=California,C=US"
-    //this.log(subjectString) //[ "CN", "github.com,O", "\"GitHub, Inc.\",L", "San Francisco,ST", "California,C", "US" ]
-
     var certInfo = {
       SerialNumber: cert.serialNumber,
       Subject: {
