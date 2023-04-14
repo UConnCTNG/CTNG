@@ -19,7 +19,7 @@ var pub = "ce24da3e8351914787bbfb5d8f3366cc5d935b0844cece458cbe19df43eeda08d9631
 var sig = "4c1a4303b9b89bc875e500c4d4407ce8e389c7cfb5a363a8835d11c185698b92"
 var sk = "1a8a8e25c6d5e8ba6a9a615b63aa593c2d19cfb0b6dfe3f297462ae84665950a"
 var msg = "doremifa"
-window.signatureTest(pub, sig, msg);
+console.log(window.verify(pub, sig, msg, sk))
 //client.
 
 // Mozilla doesn't use tlsInfo in extraInfoSpec 
@@ -84,6 +84,8 @@ for (let period = 0; period < 4; period++) {
         cons.push(data.CONs[i])
       }
     }
+
+    //client.checkUpdate(period, sths, revs, accs, cons)
 
     let sthName = `sths${period}`
     browser.storage.local.set({ [sthName]:sths })

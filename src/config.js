@@ -1,7 +1,7 @@
 var cert = {
     "Issuer": "localhost:9100",
     "Serial Number": "fe:a8:5e:a5:cc:5d:84:7c:99:e6:77:b2:9d:80:a7:81",
-    "Signature Algorithm": "sha256WithRSAEncryption",
+    "Signature": "25:1f:b2:b5:1b:cf:36:64:8b:9f:c9:3d:8a:d7:db:77:c0:c6:9c:80:f2:c3:1d:af:84:f2:a8:d5:5e:8e:8f:2b:31:3e:fc:bd:44:bf:f1:45:00:c1:0d:94:9c:49:08:6f:0a:fc:a4:82:50:2c:d9:ba:e8:a7:39:1c:d2:45:43:24:a8:b1:9d:fa:d3:c1:5a:67:ee:54:18:bc:3c:ff:d7:17:5b:c2:72:ce:0b:3c:bc:b0:cd:25:a0:98:1f:f5:52:67:bf:5f:e4:00:b4:c5:98:0b:59:17:e2:3f:8f:05:5f:f9:91:12:c3:69:94:12:f2:83:90:b1:f3:48:6b:b8:ec:ef:14:47:70:b2:b9:25:5a:c1:5e:2c:80:62:8b:f4:86:70:93:da:27:6a:ca:e2:b5:46:0e:9a:fa:52:cd:aa:95:d8:e0:6d:98:03:05:d9:fe:3c:99:e4:8e:ea:90:ff:b6:e5:3e:6f:4b:0d:8d:a2:7f:e5:85:5d:e2:62:48:78:16:4a:80:c1:9b:40:3e:dc:46:32:67:d7:01:2e:d9:2e:f7:b0:e1:17:b2:d5:e8:64:30:5e:d9:ef:44:08:34:37:fd:fb:23:0e:68:ca:5a:68:a9:25:8a:b5:72:44:c5:75:b7:70:2d:8b:05:eb:75:c3:42:e0:a7:fe:17:85:f9:72:a1:d3",
     "Validity": {
       "Not Before": "Mar 13 21:59:29 2023 GMT",
       "Not After": "Mar 12 21:59:29 2024 GMT"
