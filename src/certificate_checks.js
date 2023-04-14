@@ -10,6 +10,10 @@ class CertificateCheck {
         // return bls.verify(aggPubK, sig, message)
     }
     
+    static verifyCertSignature() {
+    
+    }
+
     static verifySTHSignature() {
     
     }
@@ -21,14 +25,16 @@ class CertificateCheck {
             let publicKeys = data.pubK
 
             //First part: checking signature of cert with CA's public key
-            
+            if (!verifyCertSignature(cert.Issuer, cert.Signature, publicKeys)) {
+                return 0 //Fail
+            }
 
             //Second part: verify signatures of STHs passed in with cert with logger's public key
             for (let i = 0; i < cert.STH.length; i++) {
                 let signer = cert.STH[i].signer
                 let sig = cert.STH.signature[0] //have to parse this
                 
-                if (verifySTHSignature(sig, publicKeys.signer)) {
+                if (verifySTHSignature(sig, signer, publicKeys)) {
                     continue
                 } else {
                     return 0 //Fail
@@ -154,8 +160,10 @@ class CertificateCheck {
             let poi = data.POI; // object with siblingHashes and neighborHash
             let siblingHashes = poi.SiblingHashes // array of sibling hashes
             let neighborHash = poi.NeighborHash // neighbor hash string
-            let rootHash = data.STH.payload[1] // need to parse for rootHash
-
+            let rootHash = data.STH.payload[1]
+            rootHash = rootHash.split("\"")
+            rootHash = rootHash[11]
+            
             let testHash = hash(cert) // TODO: define hash function
             let n = siblingHashes.length
             siblingHashes[n-1] = neighborHash
@@ -168,13 +176,31 @@ class CertificateCheck {
             console.log(`Error: ${error}`);
         });
 
-        // Jie's go code:
+        // Jie's verifyPOI function go code:
+        // certBytes, _ := json.Marshal(cert)
+	    // testHash := hash(certBytes)
         // n := len(poi.SiblingHashes)
         // poi.SiblingHashes[n-1] = poi.NeighborHash
         // for i := n - 1; i >= 0; i-- {
         //     testHash = doubleHash(poi.SiblingHashes[i], testHash)
         // }
         // return string(testHash) == string(sth.RootHash)
+
+        // Jie's hash function go code:
+        // func hash(data []byte) []byte {
+        //     hash := sha256.Sum256(data)
+        //     return hash[:]
+        // }
+
+        // Jie's doubleHash function go code:
+        // func doubleHash(data1 []byte, data2 []byte) []byte {
+        //     if data1[0] < data2[0] {
+        //         return hash(append(data1, data2...))
+        //     } else {
+        //         return hash(append(data2, data1...))
+        //     }
+        // }
+
     }
         
 }
