@@ -1,5 +1,6 @@
 import { Client } from "./src/client.js";
 import { CertificateCheck } from "./src/certificate_checks.js";
+//import { type } from "os";
 
 // var http = require('http');
 
@@ -16,10 +17,46 @@ var ALL_SITES = { urls: ['<all_urls>'] }
 var client = new Client(log)
 CertificateCheck.checkPOMs()
 var pub = "ce24da3e8351914787bbfb5d8f3366cc5d935b0844cece458cbe19df43eeda08d9631d76690794a35b5ee0bf22df013b826145940609e1a309c126ddf9c83b86"
-var sig = "4c1a4303b9b89bc875e500c4d4407ce8e389c7cfb5a363a8835d11c185698b92"
-var sk = "1a8a8e25c6d5e8ba6a9a615b63aa593c2d19cfb0b6dfe3f297462ae84665950a"
-var msg = "doremifa"
-console.log(window.verify(pub, sig, msg, sk))
+//var sig = "4c1a4303b9b89bc875e500c4d4407ce8e389c7cfb5a363a8835d11c185698b92"
+var sk = '67d53f170b908cabb9eb326c3c337762d59289a8fec79f7bc9254b584b73265c'
+var wrongSk = '67d53f170b908cabb9eb326c3c337762d59289a8fec79f7bc9254b584b73225c'
+var msg = "64726e3da8"
+
+
+
+//var sig = window.signTest(msg, sk) // async so it returns a Promise, UINT of size 96
+var sig = window.sign(msg, sk)
+//console.log(sig)
+var wrongSig = window.sign(msg, wrongSk)
+
+let signature = sig.then(function(result) { // grabs the value of the Promise
+  
+  // let utf8Encode = new TextEncoder();
+  // let encode = utf8Encode.encode(wr);
+  // result = encode.join('') // byte array
+  
+  console.log(window.verify(sk, result, msg)) // should be True
+
+})
+
+let wrongSignature = wrongSig.then((result) => {
+  try {
+    let bool = window.verify(sk, result, msg)
+    
+    var bool1 = bool.then((result) => {
+      return result
+    }) // should be false
+    console.log(bool1)
+  }
+  catch (error) {
+    console.log("Can't verify")
+  }
+})
+
+// sig = new TextDecoder().decode(sig);
+//console.log("SIG: ", signature)
+//console.log(window.verify(sk, String(signature), msg))
+//console.log(window.createHash("Kevin"))
 //client.
 
 // Mozilla doesn't use tlsInfo in extraInfoSpec 

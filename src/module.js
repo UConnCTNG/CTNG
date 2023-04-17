@@ -1,97 +1,43 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.mod = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 
 },{}],2:[function(require,module,exports){
-// const bls = require('bls-wasm/browser')
-// //import * from 'bls-wasm/browser'
-
-// const curveTest = (curveType, name) => {
-//   bls.init(curveType)
-//     .then(() => {
-//       try {
-//         console.log(`name=${name} curve order=${bls.getCurveOrder()}`)
-//         const sec = new bls.SecretKey()
-//         sec.setByCSPRNG()
-//         sec.dump('secretKey ')
-//         const pub = sec.getPublicKey()
-//         pub.dump('publicKey ')
-//         const msg = 'doremifa'
-//         const sig = sec.sign(msg)
-//         sig.dump('signature ')
-//         const ver = pub.verify(sig, msg)
-//         console.log("TESTING!: ", window.signatureTest(pub, sig, msg))
-        
-//       } catch (e) {
-//         console.log(e.stack)
-//         console.log(`TEST FAIL ${e}`)
-//       }
-//     })
-// }
-
-// async function curveTestAll () {
-//   // can't parallel
-//   await curveTest(bls.BN254, 'BN254')
-//   await curveTest(bls.BLS12_381, 'BLS12_381')
-// }
-
-// curveTestAll()
-
-// function createPrivateKeyObject(privateKeyString) {
-//   const privateKey = new bls.SecretKey();
-//   const privateKeyBytes = hexToBytes(privateKeyString);
-//   privateKey.fromBuffer(privateKeyBytes);
-//   return privateKey;
-// }
-
-// window.signatureTest = function (pub, sig, msg, privk) {
-//   const bls = require('bls-wasm/browser')
-//   bls.init(bls.BLS12_381).then(() => {
-//     try {
-//       console.log(privk)
-//       const sec = new bls.SecretKey()
-//       sec.deserialize(new Uint8Array(privk))
-//       sec.setByCSPRNG()
-//       const pub1 = sec.getPublicKey(pub)
-//       const msg1 = 'doremifa'
-//       const sig1 = sec.sign(msg)
-//       const ver = pub1.verify(sig, msg)
-//       console.log('VERIFIED??? ' + ver)
-    
-
-//       return ver //pub.verify(sig, msg);
-//     } catch (e) {
-//       console.log(e.stack)
-//       console.log(`TEST FAIL ${e}`)
-//     }
-//   })
-  
-// }
-
-// function signatureTest () {
-//   const sec = new bls.SecretKey()
-
-//   sec.setByCSPRNG()
-//   sec.dump('secretKey ')
-
-//   const pub = sec.getPublicKey()
-//   pub.dump('publicKey ')
-
-//   const msg = 'doremifa'
-//   console.log('msg ' + msg)
-//   const sig = sec.sign(msg)
-//   sig.dump('signature ')
-//   const ver = pub.verify(sig, msg)
-//   console.log('verified? ' + ver)
-// }
-
-
-
 // If you're using single file, use global variable instead: `window.nobleBls12381`
 
-window.verify = async function(publicKey, signature, message, privateKey) {
+window.verify = async function(key, signature, message) {
   const bls = require('@noble/bls12-381');
-  const publicK = bls.getPublicKey(privateKey);
+  const publicK = bls.getPublicKey(key);
+  console.log({publicK, signature})
   const isValid = await bls.verify(signature, message, publicK);
+  console.log({isValid})
   return isValid;
+}
+
+window.sign = async function(message, privateKey) {
+  const bls = require('@noble/bls12-381');
+  const signature = await bls.sign(message, privateKey);
+  return signature
+  // sig = ""
+  // for (var i=0; i<signature.byteLength; i++) {
+  //   sig += String.fromCharCode(signature[i])
+  // }
+  // return sig
+}
+
+window.signTest = async function(message, privateKey) {
+  const bls = require('@noble/bls12-381');
+  const signature = await bls.sign(message, privateKey);
+  
+  return signature
+}
+
+// window.verify = async function(publicKey, signature, message) {
+//   const bls = require('@noble/bls12-381');
+//   const isValid = await bls.verify(signature, message, publicKey);
+//   return isValid;
+// }
+
+window.aggregatePublicKeys = async function(publicKeys) {
+  const aggPubKey = bls.aggregatePublicKeys(publicKeys);
 }
 
 // (async () => {
@@ -2097,5 +2043,4 @@ const ISOGENY_COEFFICIENTS_G1 = [
     ],
 ];
 
-},{}]},{},[2])(2)
-});
+},{}]},{},[2]);

@@ -10,13 +10,20 @@ class CertificateCheck {
         // return bls.verify(aggPubK, sig, message)
     }
     
-    static verifyCertSignature() {
+    static verifyCertSignature(issuer, sig, publicKeys) {
     
     }
 
-    static verifySTHSignature() {
+    static verifySTHSignature(sig, signer, publicKeys) {
     
     }
+
+    static verifyUpdate(objectArray) {
+        //for o in objectArray {
+        //  verifyBLSSignature(...)
+        //}
+    }
+
     // Step 1.1: Signature check on cert and on STHs
     static checkSignatures() {
         let gettingItem = browser.storage.local.get(["cert", "pubK"]);
@@ -52,51 +59,62 @@ class CertificateCheck {
     static checkUpdate(period, sths, revs, accs, cons) {
         let masterArray = [];
 
-        // Parse STHs
         if (sths && Array.isArray(sths)) {
             for (let sth of sths) {
                 let type = "sths";
                 let signers = Object.values(sth.signers || []);
-                let sig = sth.signature ? sth.signature[0] : "";
+                let sigLine = sth.signature ? sth.signature[0] : "";
+                let sigIndex = sigLine.indexOf("\"sign\":\"");
+                let idIndex = sigLine.indexOf("\", \"ids\"");
+                let sig = sigLine.substring(sigIndex+8, idIndex);
                 let subArray = { type, signers, sig };
                 masterArray.push(subArray);
             }
-        }
-
+        };
+        
         // Parse REVs
         if (revs && Array.isArray(revs)) {
             for (let rev of revs) {
                 let type = "revs";
                 let signers = Object.values(rev.signers || []);
-                let sig = rev.signature ? rev.signature[0] : "";
+                let sigLine = rev.signature ? rev.signature[0] : "";
+                let sigIndex = sigLine.indexOf("\"sign\":\"");
+                let idIndex = sigLine.indexOf("\", \"ids\"");
+                let sig = sigLine.substring(sigIndex+8, idIndex);
                 let subArray = { type, signers, sig };
                 masterArray.push(subArray);
             }
-        }
-
+        };
+        
         // Parse ACCs
         if (accs && Array.isArray(accs)) {
             for (let acc of accs) {
                 let type = "accs";
                 let signers = Object.values(acc.signers || []);
-                let sig = acc.signature ? acc.signature[0] : "";
+                let sigLine = acc.signature ? acc.signature[0] : "";
+                let sigIndex = sigLine.indexOf("\"sign\":\"");
+                let idIndex = sigLine.indexOf("\", \"ids\"");
+                let sig = sigLine.substring(sigIndex+8, idIndex);
                 let subArray = { type, signers, sig };
                 masterArray.push(subArray);
             }
-        }
-
+        };
+        
         // Parse CONs
         if (cons && Array.isArray(cons)) {
             for (let con of cons) {
                 let type = "cons";
                 let signers = Object.values(con.signers || []);
-                let sig = con.signature ? con.signature[0] : "";
+                let sigLine = con.signature ? con.signature[0] : "";
+                let sigIndex = sigLine.indexOf("\"sign\":\"");
+                let idIndex = sigLine.indexOf("\", \"ids\"");
+                let sig = sigLine.substring(sigIndex+8, idIndex);
                 let subArray = { type, signers, sig };
                 masterArray.push(subArray);
             }
-        }
+        };
         console.log(masterArray);
-        //return masterArray;
+        this.verifyUpdate(masterArray)
     }
 
     
@@ -152,46 +170,17 @@ class CertificateCheck {
 
 
     // Step 3: POI verification. Check if a certificate is in the Tree head given the POI
-    verifyPOI() {
-        
-        let gettingItem = browser.storage.local.get(["cert"]);
-        gettingItem.then((data) => {
-            let cert = data.cert;
-            let poi = data.POI; // object with siblingHashes and neighborHash
-            let siblingHashes = poi.SiblingHashes // array of sibling hashes
-            let neighborHash = poi.NeighborHash // neighbor hash string
-            let rootHash = data.STH.payload[1]
-            rootHash = rootHash.split("\"")
-            rootHash = rootHash[11]
-            
-            let testHash = hash(cert) // TODO: define hash function
-            let n = siblingHashes.length
-            siblingHashes[n-1] = neighborHash
-            for (let i = n-1; i >= 0; i--) {
-                testHash = doubleHash(siblingHashes[i], testHash) // TODO: define doubleHash function
-            }
-            return String(testHash) == String(rootHash)
-
-        }, (error) => {
-            console.log(`Error: ${error}`);
-        });
-
-        // Jie's verifyPOI function go code:
-        // certBytes, _ := json.Marshal(cert)
-	    // testHash := hash(certBytes)
-        // n := len(poi.SiblingHashes)
-        // poi.SiblingHashes[n-1] = poi.NeighborHash
-        // for i := n - 1; i >= 0; i-- {
-        //     testHash = doubleHash(poi.SiblingHashes[i], testHash)
-        // }
-        // return string(testHash) == string(sth.RootHash)
-
+    hash(cert) {
         // Jie's hash function go code:
         // func hash(data []byte) []byte {
         //     hash := sha256.Sum256(data)
         //     return hash[:]
         // }
+        let h = window.createHash(cert)
+        return h
+    }
 
+    doubleHash(data1, data2) {
         // Jie's doubleHash function go code:
         // func doubleHash(data1 []byte, data2 []byte) []byte {
         //     if data1[0] < data2[0] {
@@ -200,6 +189,38 @@ class CertificateCheck {
         //         return hash(append(data2, data1...))
         //     }
         // }
+        if (data1 < data2) {
+            return this.hash(data1.concat(data2))
+        } else {
+            return this.hash(data2.concat(data1))
+        }
+    }
+
+    verifyPOI(period) {
+        let gettingItem = browser.storage.local.get(["cert", `sth${period}`]);
+        gettingItem.then((data) => {
+            let cert = data.cert;
+            let poi = data.cert.POI; // object with siblingHashes and neighborHash
+            let siblingHashes = poi.SiblingHashes // array of sibling hashes
+            let neighborHash = poi.NeighborHash // neighbor hash string
+            let rootHash = Object.keys(data)[1].payload[1]
+            rootHash = rootHash.split("\"")[11] // json string
+            // rootHash[11] is \ufffd%\ufffd\ufffd\ufffd[PV\ufffd\u0001?\ufffd3M\u0007$\ufffdS\ufffd\n\ufffdX\ufffd\ufffd\ufffdpn\ufffd\ufffd\u0019_(
+            let utf8Encode = new TextEncoder();
+            let encode = utf8Encode.encode(rootHash);
+            rootHash = encode.join('') // byte array
+
+            let testHash = hash(cert)
+            let n = siblingHashes.length
+            siblingHashes[n-1] = neighborHash
+            for (let i = n-1; i >= 0; i--) {
+                testHash = doubleHash(siblingHashes[i], testHash)
+            }
+            return String(testHash) == String(rootHash)
+
+        }, (error) => {
+            console.log(`Error: ${error}`);
+        });
 
     }
         
