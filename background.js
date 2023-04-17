@@ -22,11 +22,11 @@ var sk = '67d53f170b908cabb9eb326c3c337762d59289a8fec79f7bc9254b584b73265c'
 var wrongSk = '67d53f170b908cabb9eb326c3c337762d59289a8fec79f7bc9254b584b73225c'
 var msg = "64726e3da8"
 
-
+window.aggTest()
 
 //var sig = window.signTest(msg, sk) // async so it returns a Promise, UINT of size 96
 var sig = window.sign(msg, sk)
-//console.log(sig)
+console.log(sig)
 var wrongSig = window.sign(msg, wrongSk)
 
 let signature = sig.then(function(result) { // grabs the value of the Promise
@@ -34,8 +34,8 @@ let signature = sig.then(function(result) { // grabs the value of the Promise
   // let utf8Encode = new TextEncoder();
   // let encode = utf8Encode.encode(wr);
   // result = encode.join('') // byte array
-  
-  console.log(window.verify(sk, result, msg)) // should be True
+  var publicKey = window.getPublicKey(sk)
+  console.log(window.verify(publicKey, result, msg)) // should be True
 
 })
 
@@ -44,6 +44,7 @@ let wrongSignature = wrongSig.then((result) => {
     let bool = window.verify(sk, result, msg)
     
     var bool1 = bool.then((result) => {
+      console.log("RESULT: ", result.isValid)
       return result
     }) // should be false
     console.log(bool1)
@@ -53,11 +54,6 @@ let wrongSignature = wrongSig.then((result) => {
   }
 })
 
-// sig = new TextDecoder().decode(sig);
-//console.log("SIG: ", signature)
-//console.log(window.verify(sk, String(signature), msg))
-//console.log(window.createHash("Kevin"))
-//client.
 
 // Mozilla doesn't use tlsInfo in extraInfoSpec 
 var extraInfoSpec = ['blocking', "responseHeaders"]; 

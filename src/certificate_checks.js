@@ -1,6 +1,6 @@
 class CertificateCheck {
 
-    static verifyBLSSignature() {
+    static async verifyBLSSignature(pubKeyMap, payload) {
         // pubK = { "localhost:9000" : pubK1... ,
         //          "localhost:9001" : pubK2...,
         // }
@@ -8,6 +8,33 @@ class CertificateCheck {
         // get signature from struct object (payload)
         // get message from struct object (payload)
         // return bls.verify(aggPubK, sig, message)
+        if (Object.keys(pubKeyMap).length == 1) {
+            const key = publicKeyMap[Object.keys[0]];
+            const sig = payload.signature;
+            const msg = payload.msg;
+            let verified = window.verify(key, sig, msg).then((result) => {
+                return result.isValid
+            })
+            return verified
+        }
+        else {
+            const msg = payload.msg;
+            var keysArr = []
+            for (const key in pubKeyMap) {
+                keysArr.push(pubKeyMap[key])
+            }
+            var sigsArr = []
+            for (const key in payload.signatures) {
+                sigsArr.push(payload.signatures[key])
+            }
+            let verified = window.verifyAggregate(keysArr, sigsArr, msg).then((result) => {
+                return result.isValid
+            })
+            return verified
+        }
+
+        
+
     }
     
     static verifyCertSignature(issuer, sig, publicKeys) {
