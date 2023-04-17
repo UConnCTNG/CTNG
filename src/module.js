@@ -52,6 +52,14 @@ window.verifyAggregate = async function(publicKeys, signatures, message) {
   return isValid
 }
 
+window.aggregatePublicKeys = function(keys) {
+  return bls.aggregatePublicKeys(keys);
+}
+
+window.aggregateSignatures = function(sigs) {
+  return bls.aggregateSignatures(sigs)
+}
+
 window.aggTest = async function() {
   const bls = require('@noble/bls12-381');
   const privateKey = '67d53f170b908cabb9eb326c3c337762d59289a8fec79f7bc9254b584b73265c';

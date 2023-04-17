@@ -1,6 +1,6 @@
 class CertificateCheck {
 
-    static async verifyBLSSignature(pubKeyMap, payload) {
+    static async verifyUpdate(masterArray, pubKeyMap) {
         // pubK = { "localhost:9000" : pubK1... ,
         //          "localhost:9001" : pubK2...,
         // }
@@ -8,47 +8,43 @@ class CertificateCheck {
         // get signature from struct object (payload)
         // get message from struct object (payload)
         // return bls.verify(aggPubK, sig, message)
-        if (Object.keys(pubKeyMap).length == 1) {
-            const key = publicKeyMap[Object.keys[0]];
-            const sig = payload.signature;
-            const msg = payload.msg;
-            let verified = window.verify(key, sig, msg).then((result) => {
+        for (let o in masterArray) {
+            // aggregate(T, T2) = A -- kevin
+            var agg = verify.aggregatePublicKeys([t1, t2]) // t1 and t2 must be Uint8 array
+            
+            // get the signature and message from masterArray
+            // check if every object (o) passes the verify 
+            let verified = window.verify(agg, o.sig, o.message).then((result) => {
                 return result.isValid
             })
-            return verified
-        }
-        else {
-            const msg = payload.msg;
-            var keysArr = []
-            for (const key in pubKeyMap) {
-                keysArr.push(pubKeyMap[key])
+            if (verified) {
+                console.log("Yay verification passed!")
+                continue
             }
-            var sigsArr = []
-            for (const key in payload.signatures) {
-                sigsArr.push(payload.signatures[key])
-            }
-            let verified = window.verifyAggregate(keysArr, sigsArr, msg).then((result) => {
-                return result.isValid
-            })
-            return verified
+            else {
+                console.log("Failure :(")
+                return 0
+            }  
         }
-
-        
-
-    }
+        return 1
+    } 
     
     static verifyCertSignature(issuer, sig, publicKeys) {
-    
+        let N = publicKeys[issuer].N
+        let E = publicKeys[issuer].E
+        let verified = window.verifyRSA(sig, N, E).then((result) => {
+            return result.isValid
+        })
+        return verified
     }
 
-    static verifySTHSignature(sig, signer, publicKeys) {
-    
-    }
-
-    static verifyUpdate(objectArray) {
-        //for o in objectArray {
-        //  verifyBLSSignature(...)
-        //}
+    static verifySTHSignature(signer, sig, publicKeys) {
+        let N = publicKeys[signer].N
+        let E = publicKeys[signer].E
+        let verified = window.verifyRSA(sig, N, E).then((result) => {
+            return result.isValid
+        })
+        return verified
     }
 
     // Step 1.1: Signature check on cert and on STHs
@@ -57,18 +53,24 @@ class CertificateCheck {
         gettingItem.then((data) => {
             let cert = data.cert
             let publicKeys = data.pubK
-
+            
+            //parse out : of cert.Signature
+            let item = JSON.stringify(cert.Signature);
+            let sig = item.replace(/:/g,'');
             //First part: checking signature of cert with CA's public key
-            if (!verifyCertSignature(cert.Issuer, cert.Signature, publicKeys)) {
+            if (!verifyCertSignature(cert.Issuer, sig, publicKeys)) {
                 return 0 //Fail
             }
 
             //Second part: verify signatures of STHs passed in with cert with logger's public key
             for (let i = 0; i < cert.STH.length; i++) {
                 let signer = cert.STH[i].signer
-                let sig = cert.STH.signature[0] //have to parse this
+                let sigLine = cert.STH.signature[0]
+                let sigIndex = sigLine.indexOf("\"sign\":\"");
+                let idIndex = sigLine.indexOf("\", \"ids\"");
+                let sig = sigLine.substring(sigIndex+8, idIndex);
                 
-                if (verifySTHSignature(sig, signer, publicKeys)) {
+                if (verifySTHSignature(signer, sig, publicKeys)) {
                     continue
                 } else {
                     return 0 //Fail
@@ -84,64 +86,74 @@ class CertificateCheck {
     
     //Step 1.2: Signature Verification on monitor update
     static checkUpdate(period, sths, revs, accs, cons) {
-        let masterArray = [];
-
-        if (sths && Array.isArray(sths)) {
-            for (let sth of sths) {
-                let type = "sths";
-                let signers = Object.values(sth.signers || []);
-                let sigLine = sth.signature ? sth.signature[0] : "";
-                let sigIndex = sigLine.indexOf("\"sign\":\"");
-                let idIndex = sigLine.indexOf("\", \"ids\"");
-                let sig = sigLine.substring(sigIndex+8, idIndex);
-                let subArray = { type, signers, sig };
-                masterArray.push(subArray);
-            }
-        };
+        let gettingItem = browser.storage.local.get(["pubK"]);
+        gettingItem.then((data) => {
+            let publicKeys = data.pubK
+            let masterArray = [];
+            
+            if (sths && Array.isArray(sths)) {
+                for (let sth of sths) {
+                    let type = "sths";
+                    let signers = Object.values(sth.signers || []);
+                    let sigLine = sth.signature ? sth.signature[0] : "";
+                    let sigIndex = sigLine.indexOf("\"sign\":\"");
+                    let idIndex = sigLine.indexOf("\", \"ids\"");
+                    let sig = sigLine.substring(sigIndex+8, idIndex);
+                    let payloadLine = sth.payload ? sth.payload[0] : "";
+                    let subArray = { type, signers, sig, payloadLine };
+                    masterArray.push(subArray);
+                }
+            };
+            
+            // Parse REVs
+            if (revs && Array.isArray(revs)) {
+                for (let rev of revs) {
+                    let type = "revs";
+                    let signers = Object.values(rev.signers || []);
+                    let sigLine = rev.signature ? rev.signature[0] : "";
+                    let sigIndex = sigLine.indexOf("\"sign\":\"");
+                    let idIndex = sigLine.indexOf("\", \"ids\"");
+                    let sig = sigLine.substring(sigIndex+8, idIndex);
+                    let payloadLine = rev.payload ? rev.payload[0] : "";
+                    let subArray = { type, signers, sig };
+                    masterArray.push(subArray);
+                }
+            };
+            
+            // Parse ACCs
+            if (accs && Array.isArray(accs)) {
+                for (let acc of accs) {
+                    let type = "accs";
+                    let signers = Object.values(acc.signers || []);
+                    let sigLine = acc.signature ? acc.signature[0] : "";
+                    let sigIndex = sigLine.indexOf("\"sign\":\"");
+                    let idIndex = sigLine.indexOf("\", \"ids\"");
+                    let sig = sigLine.substring(sigIndex+8, idIndex);
+                    let payloadLine = acc.payload ? acc.payload[0] : "";
+                    let subArray = { type, signers, sig };
+                    masterArray.push(subArray);
+                }
+            };
+            
+            // Parse CONs
+            if (cons && Array.isArray(cons)) {
+                for (let con of cons) {
+                    let type = "cons";
+                    let signers = Object.values(con.signers || []);
+                    let sigLine = con.signature ? con.signature[0] : "";
+                    let sigIndex = sigLine.indexOf("\"sign\":\"");
+                    let idIndex = sigLine.indexOf("\", \"ids\"");
+                    let sig = sigLine.substring(sigIndex+8, idIndex);
+                    let payloadLine = con.payload ? con.payload[0] : "";
+                    let subArray = { type, signers, sig };
+                    masterArray.push(subArray);
+                }
+            };
         
-        // Parse REVs
-        if (revs && Array.isArray(revs)) {
-            for (let rev of revs) {
-                let type = "revs";
-                let signers = Object.values(rev.signers || []);
-                let sigLine = rev.signature ? rev.signature[0] : "";
-                let sigIndex = sigLine.indexOf("\"sign\":\"");
-                let idIndex = sigLine.indexOf("\", \"ids\"");
-                let sig = sigLine.substring(sigIndex+8, idIndex);
-                let subArray = { type, signers, sig };
-                masterArray.push(subArray);
-            }
-        };
-        
-        // Parse ACCs
-        if (accs && Array.isArray(accs)) {
-            for (let acc of accs) {
-                let type = "accs";
-                let signers = Object.values(acc.signers || []);
-                let sigLine = acc.signature ? acc.signature[0] : "";
-                let sigIndex = sigLine.indexOf("\"sign\":\"");
-                let idIndex = sigLine.indexOf("\", \"ids\"");
-                let sig = sigLine.substring(sigIndex+8, idIndex);
-                let subArray = { type, signers, sig };
-                masterArray.push(subArray);
-            }
-        };
-        
-        // Parse CONs
-        if (cons && Array.isArray(cons)) {
-            for (let con of cons) {
-                let type = "cons";
-                let signers = Object.values(con.signers || []);
-                let sigLine = con.signature ? con.signature[0] : "";
-                let sigIndex = sigLine.indexOf("\"sign\":\"");
-                let idIndex = sigLine.indexOf("\", \"ids\"");
-                let sig = sigLine.substring(sigIndex+8, idIndex);
-                let subArray = { type, signers, sig };
-                masterArray.push(subArray);
-            }
-        };
-        console.log(masterArray);
-        this.verifyUpdate(masterArray)
+            this.verifyUpdate(masterArray, publicKeys)
+        }, (error) => {
+            console.log(`Error: ${error}`);
+        });
     }
 
     
