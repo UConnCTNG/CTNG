@@ -1,3 +1,4 @@
+import { CertificateCheck } from "./certificate_checks.js";
 import { cert } from "./config.js"
 
 //const {cert} = require("./config.js")
@@ -79,6 +80,60 @@ class Client {
 
   static deleteCertificateFromStorage() {
     // returns status
+  }
+
+  async getMonitorUpdates(period) {
+    fetch(`http://localhost:3000/?period=${period}`)
+    .then(response => response.text())
+    .then(async (text) => {
+    
+      const data = JSON.parse(text);
+  
+      var sths = [] 
+      var timestamps = [] 
+      var revs = []
+      var accs = []
+      var cons = []
+  
+      for (var i = 0; i < Object.keys(data.STHs).length; i++) {
+        sths.push(data.STHs[i]);
+        timestamps.push(data.STHs[i].timestamp);   
+      }
+  
+      for (var i = 0; i < Object.keys(data.REVs).length; i++) {
+        revs.push(data.REVs[i]);
+      }
+  
+      if (!data.ACCs || (data.ACCs && data.ACCs.size == 0)) {
+        accs = []
+      } else {
+        for (var i = 0; i < Object.keys(data.ACCs).length; i++) {
+          accs.push(data.ACCs[i])
+        }
+      }
+  
+      if (!data.CONs || (data.CONs && data.CONs.size == 0)) {
+        cons = []
+      } else {
+        for (var i = 0; i < Object.keys(data.CONs).length; i++) {
+          cons.push(data.CONs[i])
+        }
+      }
+  
+      const check = await CertificateCheck.checkUpdate(period, sths, revs, accs, cons)
+  
+      let sthName = `sths${period}`
+      browser.storage.local.set({ [sthName]:sths })
+      let timestampName = `timestamps${period}`
+      browser.storage.local.set({ [timestampName]: timestamps })
+      let revName = `revs${period}`
+      browser.storage.local.set({ [revName]: revs })
+      let accName = `accs${period}`
+      browser.storage.local.set({ [accName]: accs })
+      let conName = `cons${period}`
+      browser.storage.local.set({ [conName]: cons })
+    });
+    return period + 1;
   }
 
   storeCertObject() {

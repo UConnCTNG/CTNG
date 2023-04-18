@@ -53,10 +53,14 @@ window.verifyAggregate = async function(publicKeys, signatures, message) {
 }
 
 window.aggregatePublicKeys = function(keys) {
+  const bls = require('@noble/bls12-381');
+
   return bls.aggregatePublicKeys(keys);
 }
 
 window.aggregateSignatures = function(sigs) {
+  const bls = require('@noble/bls12-381');
+
   return bls.aggregateSignatures(sigs)
 }
 

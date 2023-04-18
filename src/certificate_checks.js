@@ -8,10 +8,29 @@ class CertificateCheck {
         // get signature from struct object (payload)
         // get message from struct object (payload)
         // return bls.verify(aggPubK, sig, message)
-        for (let o in masterArray) {
+        for (let o of masterArray) {
             // aggregate(T, T2) = A -- kevin
-            var agg = verify.aggregatePublicKeys([t1, t2]) // t1 and t2 must be Uint8 array
+            console.log(masterArray)
+
+            if (o.signers.length > 1) {
+                
+            }
+            var t1 = ""
+            var t2 = ""
+            var keys = []
+            for (let s of o.signers) {
+                let utf8Encode = new TextEncoder("utf-8").encode(pubKeyMap[s].T);
+                keys.push(utf8Encode)
+                console.log("KEYS*******:", keys)
+                break
+            }
+            // if (keys.length > 1) {
+                
+            // }
             
+            window.aggTest()
+            var agg = window.aggregatePublicKeys(keys) // t1 and t2 must be Uint8 array
+            console.log("Agg worked")
             // get the signature and message from masterArray
             // check if every object (o) passes the verify 
             let verified = window.verify(agg, o.sig, o.message).then((result) => {
@@ -162,7 +181,7 @@ class CertificateCheck {
         let gettingItem = browser.storage.local.get(["cons1", "accs1", "cert"]);
         gettingItem.then((data) =>
         {
-            var certCA = data.cert.Issuer
+            var certCA = data.cert["Issuer"]
             var loggers = ["localhost:9000","localhost:9001", "localhost:9002"]
             
             var conLoggerCount = 0
@@ -187,19 +206,20 @@ class CertificateCheck {
             var loggerCountCheck = (conLoggerCount == 0 && accLoggerCount == 0)
             
             if (conPOMs.length == 0 && accPOMs.length == 0) {
-                //return 1; //success
                 console.log("Pass.")
+                return 1; //success
             }
             else if ((!conPOMs.includes(certCA) && !accPOMs.includes(certCA)) && loggerCountCheck) {
-                //return 1; //success
                 console.log("Pass.")
+                return 1; //success
             }
             else if ((conPOMs.includes(certCA) || accPOMs.includes(certCA)) && loggerCountCheck) {
-                //return 0; //fail
                 console.log("Fail.")
+                return 0; //fail
             }
             else {
                 console.log("Fail.")
+                return 0; //fail
             }
         }
         , (error) => {

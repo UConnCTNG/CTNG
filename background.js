@@ -1,5 +1,6 @@
 import { Client } from "./src/client.js";
 import { CertificateCheck } from "./src/certificate_checks.js";
+import { Test } from "./test/test.js";
 //import { type } from "os";
 
 // var http = require('http');
@@ -9,11 +10,14 @@ var option = {
     port : 3000 ,
     method : "POST",
     path : "/"
-} 
+}
 
 var log = console.log.bind(console)
 // https://developer.chrome.com/extensions/match_patterns
 var ALL_SITES = { urls: ['<all_urls>'] }
+
+var tester = new Test()
+tester.runTests()
 var client = new Client(log)
 CertificateCheck.checkPOMs()
 var pub = "ce24da3e8351914787bbfb5d8f3366cc5d935b0844cece458cbe19df43eeda08d9631d76690794a35b5ee0bf22df013b826145940609e1a309c126ddf9c83b86"
@@ -31,27 +35,27 @@ var rsaSig = "6a28a6947cf43ac670e6fe52cdc6c98dae9c585b8ba8e7df8965991c7ae9fbaa59
 
 // ************
 // VERIFY SIGNATURE TESTS=
-var sig = window.sign(msg, sk)
-console.log(sig)
-var wrongSig = window.sign(msg, wrongSk)
-let signature = sig.then(function(result) { // grabs the value of the Promise
-  var publicKey = window.getPublicKey(sk)
-  console.log(window.verify(publicKey, result, msg)) // should be True
-})
+// var sig = window.sign(msg, sk)
+// //console.log(sig)
+// var wrongSig = window.sign(msg, wrongSk)
+// let signature = sig.then(function(result) { // grabs the value of the Promise
+//   var publicKey = window.getPublicKey(sk)
+//   console.log(window.verify(publicKey, result, msg)) // should be True
+// })
 
-let wrongSignature = wrongSig.then((result) => {
-  try {
-    let bool = window.verify(sk, result, msg)
-    var bool1 = bool.then((result) => {
-      console.log("RESULT: ", result.isValid)
-      return result
-    }) // should be false
-    console.log(bool1)
-  }
-  catch (error) {
-    console.log("Can't verify")
-  }
-})
+// let wrongSignature = wrongSig.then((result) => {
+//   try {
+//     let bool = window.verify(sk, result, msg)
+//     var bool1 = bool.then((result) => {
+//       console.log("RESULT: ", result.isValid)
+//       return result
+//     }) // should be false
+//     console.log(bool1)
+//   }
+//   catch (error) {
+//     console.log("Can't verify")
+//   }
+// })
 // ************
 
 // Mozilla doesn't use tlsInfo in extraInfoSpec 
@@ -65,7 +69,7 @@ browser.webRequest.onHeadersReceived.addListener(async function(details){
         rawDER: false
     });
 
-    let cert = client.parseCertificate(securityInfo)
+    //let cert = client.parseCertificate(securityInfo)
     // var request = http.request(option , function(resp){
     //     resp.on("data",function(chunck){
     //         console.log(chunck.toString());
@@ -78,56 +82,3 @@ browser.webRequest.onHeadersReceived.addListener(async function(details){
 browser.storage.local.onChanged.addListener(client.logStorageUpdate)
 
 //browser.storage.local.clear();
-
-for (let period = 0; period < 4; period++) {
-  fetch(`http://localhost:3000/?period=${period}`)
-  .then(response => response.text())
-  .then(text => {
- 
-    const data = JSON.parse(text);
-
-    var sths = [] 
-    var timestamps = [] 
-    var revs = []
-    var accs = []
-    var cons = []
-
-    for (var i = 0; i < Object.keys(data.STHs).length; i++) {
-      sths.push(data.STHs[i]);
-      timestamps.push(data.STHs[i].timestamp);   
-    }
-
-    for (var i = 0; i < Object.keys(data.REVs).length; i++) {
-      revs.push(data.REVs[i]);
-    }
-
-    if (!data.ACCs || (data.ACCs && data.ACCs.size == 0)) {
-      accs = []
-    } else {
-      for (var i = 0; i < Object.keys(data.ACCs).length; i++) {
-        accs.push(data.ACCs[i])
-      }
-    }
-
-    if (!data.CONs || (data.CONs && data.CONs.size == 0)) {
-      cons = []
-    } else {
-      for (var i = 0; i < Object.keys(data.CONs).length; i++) {
-        cons.push(data.CONs[i])
-      }
-    }
-
-    //client.checkUpdate(period, sths, revs, accs, cons)
-
-    let sthName = `sths${period}`
-    browser.storage.local.set({ [sthName]:sths })
-    let timestampName = `timestamps${period}`
-    browser.storage.local.set({ [timestampName]: timestamps })
-    let revName = `revs${period}`
-    browser.storage.local.set({ [revName]: revs })
-    let accName = `accs${period}`
-    browser.storage.local.set({ [accName]: accs })
-    let conName = `cons${period}`
-    browser.storage.local.set({ [conName]: cons })
-  });
-}
