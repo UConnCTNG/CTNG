@@ -29,6 +29,8 @@ window.verifyTest = async function(key, signature, message) {
 
 window.sign = async function(message, privateKey) {
   const bls = require('@noble/bls12-381');
+  //const bls = require('@noble/curves/bls12-381');
+
   const signature = await bls.sign(message, privateKey);
   return signature
   // sig = ""

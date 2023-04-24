@@ -10,7 +10,7 @@ class CertificateCheck {
         // return bls.verify(aggPubK, sig, message)
         for (let o of masterArray) {
             // aggregate(T, T2) = A -- kevin
-            console.log(masterArray)
+            console.log("M.A. :" , masterArray)
 
             if (o.signers.length > 1) {
                 
@@ -30,6 +30,7 @@ class CertificateCheck {
             
             window.aggTest()
             var agg = window.aggregatePublicKeys(keys) // t1 and t2 must be Uint8 array
+            window.aggTest()
             console.log("Agg worked")
             // get the signature and message from masterArray
             // check if every object (o) passes the verify 
@@ -266,8 +267,7 @@ class CertificateCheck {
             rootHash = rootHash.split("\"")[11] // json string
             // rootHash[11] is \ufffd%\ufffd\ufffd\ufffd[PV\ufffd\u0001?\ufffd3M\u0007$\ufffdS\ufffd\n\ufffdX\ufffd\ufffd\ufffdpn\ufffd\ufffd\u0019_(
             let utf8Encode = new TextEncoder();
-            let encode = utf8Encode.encode(rootHash);
-            rootHash = encode.join('') // byte array
+            rootHash = utf8Encode.encode(rootHash);
 
             let testHash = hash(cert)
             let n = siblingHashes.length
