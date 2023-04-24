@@ -36,21 +36,48 @@ class Test {
     client.storeCertObject()
     
     // Testing getting updates from Monitor
+    /*
     for (let p = 0; p < 4; p++) {
       const store = await client.getMonitorUpdates(p);
       this.verificationChecks();
       delay(60000);
     }
+    */
+    for (let p = 0; p < 4; p++) {
+      const store = await client.getMonitorUpdates(p);
+      this.verificationChecks();
+      await(60000);
+    }
+
+    // inside storage function call out to connector function
+    //functionSampleConnector();
+    
 
   }
 
   //Front end development
-  /*
-  const $popup = $('<div>').html(`This webpage is untrustworthy. You will be rerouted.`);
-  $popup.dialog();
-  */
+  async redirect() {
+    if (window.history.length > 1) {
+      // Navigate back to the previous website
+      window.history.back();
+      // Display an alert with the reason for the redirect
+      alert("The website you tried to access was flagged as potentially malicious and was redirected.");
+    } else {
+      // If there is no previous website, route to google
+      window.location.href = "https://www.google.com/";
+      // Display an alert with the reason for the redirect
+      alert("The website you tried to access was flagged as potentially malicious and was redirected.");
+    }
+  }
 
 
+}
+
+
+function delay60Seconds(){
+  setTimeout(function(){
+
+  }, 60000);
 }
 
 export { Test };

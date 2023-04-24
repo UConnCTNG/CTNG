@@ -28,9 +28,9 @@ class CertificateCheck {
                 
             // }
             
-            window.aggTest()
+            //window.aggTest()
             var agg = window.aggregatePublicKeys(keys) // t1 and t2 must be Uint8 array
-            window.aggTest()
+            //window.aggTest()
             console.log("Agg worked")
             // get the signature and message from masterArray
             // check if every object (o) passes the verify 
@@ -118,7 +118,7 @@ class CertificateCheck {
                     let sigLine = sth.signature ? sth.signature[0] : "";
                     let sigIndex = sigLine.indexOf("\"sign\":\"");
                     let idIndex = sigLine.indexOf("\", \"ids\"");
-                    let sig = sigLine.substring(sigIndex+8, idIndex);
+                    let sig = sigLine.substring(sigIndex + 8, idIndex);
                     let payloadLine = sth.payload ? sth.payload[0] : "";
                     let subArray = { type, signers, sig, payloadLine };
                     masterArray.push(subArray);
@@ -135,7 +135,7 @@ class CertificateCheck {
                     let idIndex = sigLine.indexOf("\", \"ids\"");
                     let sig = sigLine.substring(sigIndex+8, idIndex);
                     let payloadLine = rev.payload ? rev.payload[0] : "";
-                    let subArray = { type, signers, sig };
+                    let subArray = { type, signers, sig, payloadLine };
                     masterArray.push(subArray);
                 }
             };
@@ -150,7 +150,7 @@ class CertificateCheck {
                     let idIndex = sigLine.indexOf("\", \"ids\"");
                     let sig = sigLine.substring(sigIndex+8, idIndex);
                     let payloadLine = acc.payload ? acc.payload[0] : "";
-                    let subArray = { type, signers, sig };
+                    let subArray = { type, signers, sig, payloadLine };
                     masterArray.push(subArray);
                 }
             };
@@ -165,11 +165,12 @@ class CertificateCheck {
                     let idIndex = sigLine.indexOf("\", \"ids\"");
                     let sig = sigLine.substring(sigIndex+8, idIndex);
                     let payloadLine = con.payload ? con.payload[0] : "";
-                    let subArray = { type, signers, sig };
+                    let subArray = { type, signers, sig, payloadLine };
                     masterArray.push(subArray);
                 }
             };
-        
+            
+            masterArray = signatureGeneration(masterArray)
             this.verifyUpdate(masterArray, publicKeys)
         }, (error) => {
             console.log(`Error: ${error}`);

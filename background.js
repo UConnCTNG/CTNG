@@ -12,6 +12,49 @@ var option = {
     path : "/"
 }
 
+function verifyGeneratedSignatures(signers, sig, msg) {
+  let gettingItem = browser.storage.local.get(["pubK"]);
+  gettingItem.then(async (data) => {
+    let keys = [] //public keys
+    for (let s of signers) {
+      let key = data.pubK[s].T
+      keys.push(hexToUint8Array(key))
+    }
+    console.log("PUBKEYS", keys)
+    let aggKey = window.aggregatePublicKeys(keys)
+    console.log("aggpubkey", aggKey, sig, msg)
+    let b = await window.verify(aggKey, sig, msg)
+    console.log("Result of VERIFY: ")
+    console.log(b)
+    return 1;
+  }, (error) => {
+    console.log(`Error: ${error}`);
+  });
+}
+
+
+async function generateSignature(signers, msg, privK) {
+    // Returns a uint8 array that is the *aggregated* signature
+      let sigs = []
+      for (let s of signers) {
+        let key = privK[s]
+        console.log(key)
+        let n = await window.sign(msg, key)
+        sigs.push(n) //has to return uint8 signature
+      }
+      let newSig = window.aggregateSignatures(sigs) //has to be uint8
+      console.log("GENERATED AGGSIG: ", newSig)
+      return newSig;
+  }
+  
+  function signatureGeneration(masterArray) {
+      for (let m of masterArray) {
+        let newSig = generateSignature(m.signers, m.payload);
+        m.sig = newSig;
+      }
+    return masterArray;
+  }
+
 function uint8ArrayToHex(uint8Array) {
     return Array.from(uint8Array).map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
@@ -32,13 +75,13 @@ function bytesToHex(bytes) {
       bytes,
       byte => byte.toString(16).padStart(2, "0")
     ).join("");
-  }
+}
   
-  // You almost certainly want UTF-8, which is
-  // now natively supported:
-  function stringToUTF8Bytes(string) {
+// You almost certainly want UTF-8, which is
+// now natively supported:
+function stringToUTF8Bytes(string) {
     return new TextEncoder().encode(string);
-  }
+}
 
 function stringToHex(inputString) {
     let hexString = '';
@@ -55,53 +98,102 @@ var log = console.log.bind(console)
 var ALL_SITES = { urls: ['<all_urls>'] }
 
 var tester = new Test()
-tester.runTests()
+await tester.runTests()
 var client = new Client(log)
 CertificateCheck.checkPOMs()
 
+// SIGNATURE GENERATION LOGIC
+function sigGenTest() {
+  let gettingItem = browser.storage.local.get(["privK"]);
+  gettingItem.then(async (data) => {
+    console.log("Generating Sigs")
+    var msg = "localhost:9000"
+    msg = stringToHex(msg)
+    let signers = ["localhost:8080", "localhost:8083"]
+
+    let aggSig = await generateSignature(signers, msg, data.privK)
+    console.log("yoo", aggSig)
+    let result = await verifyGeneratedSignatures(signers, aggSig, msg)
+  }, (error) => {
+  console.log(`Error: ${error}`);
+  });
+}
+
+sigGenTest()
+
+// END OF SIGNATURE GENERATION LOGIC
+
 // We have one signer for now
+// localhost 8080
 var pub = '8f539bbefe0f6d4a362bee38367731e065b0c0dea004fa070e485ba36a5c306538e62a1e4e73c2e511749f7ccff9245f'
-var sig = '8d630775a6ef65fee1cf3c25a5a47d728d2c1b5c11a25f0aa119b5751779afaf389c6530a9880d5db426178ce58278510f24e0bf7ab1f22a4d0ffcb7803288e090c923ecde030a294f9932625e44c46de21de98cb4ee80e0e00cefeac663be4c'
+var sigTest = '8d630775a6ef65fee1cf3c25a5a47d728d2c1b5c11a25f0aa119b5751779afaf389c6530a9880d5db426178ce58278510f24e0bf7ab1f22a4d0ffcb7803288e090c923ecde030a294f9932625e44c46de21de98cb4ee80e0e00cefeac663be4c'
 var sk = '58e40533351d5e023133a1f355bbeaed1ef7f437faf9625169a2b37c9c977f38'
 var payload = "{\"Signer\":\"localhost:9000\",\"Timestamp\":\"2023-03-13T21:59:31Z\",\"RootHash\":\"\\ufffd\\ufffd\\u0010\\ufffd'@Gj\\ufffd*\\ufffdqy...\\ufffdb\\u0013\\ufffd\\n\\ufffd\\ufffd?\\ufffd\\ufffd\\ufffd\\ufffd7\\ufffd\\u001d\\ufffd\",\"TreeSize\":12}"
+let sig = ""
 
+// let sigFunc = window.sign(msg, sk).then(function(result) {
+//     //return uint8ArrayToHex(result)
+//     sig = bytesToHex(result)
+// })
 
-var payloadHex = "7b5c225369676e65725c223a5c226c6f63616c686f73743a393030305c222c5c2254696d657374616d705c223a5c22323032332d30332d31335432313a35393a33315a5c222c5c22526f6f74486173685c223a5c225c5c75666666645c5c75666666645c5c75303031305c5c75666666642740476a5c5c75666666642a5c5c756666666471792e2e2e5c5c7566666664625c5c75303031335c5c75666666645c5c6e5c5c75666666645c5c75666666643f5c5c75666666645c5c75666666645c5c75666666645c5c7566666664375c5c75666666645c5c75303031645c5c75666666645c222c5c225472656553697a655c223a31327d"
+// localhost 8081
+var pub2 = '8d7893edcda6d9051aa9591a9e694c2d50660033b5c00476ab2dfa916735bf6dd76222bf1e7d471f6cabe4a4802645e0'
+var sk2 = '1074b2fe01cf4b94297d649825841d402c8e8e41268718cf57673dc488bd503f'
+let sig2 = ""
+// let sigFunc2 = window.sign(msg, sk2).then(function(result) {
+//     //return uint8ArrayToHex(result)
+//     sig2 = bytesToHex(result)
+//     //console.log(sig2)
+// })
+
+async function signMessageHelper(msg, sk1, sk2) {
+    try {
+        const result = await window.sign(msg, sk1);
+        const result2 = await window.sign(msg, sk2);
+        sig1 = bytesToHex(result);
+        sig2 = bytesToHex(result2)
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+//window.aggTest()
+// log("SIG1 and 2: ", sig, sig2)
+
+// var aggSig = await window.aggregateSignatures([sig, sig2])
+// log("AGGSIG: ", aggSig)
+
+// log("PK1, SIG1", { pub, sig })
+// log("PK2, SIG2", { pub2, sig2 })
 
 //payload = payload.replace(/"/g, '\\"')
 //log(payload)
 
-var n = 22563152875487429106689137614824193881384868606949072613876077246817826800656408428689569792626425751757103668905790874085904308994272577249393839901594638373026083729614957772225986980106530492907313646509054189167540885492731964740591279266611759417376789694996801929389724110452859432030423682537555131205369172007786755802263956544307456888475975019812997965673565517315450787068915058834733994299513295847005782966188263824821362702920674845139389611962806159634284684262824406319009282688892418677305894992319953420121246560164710149855635006516385593897453237579149710587187652820590321935200528151126709040649
-var e = 65537
-var rsaSig = "6a28a6947cf43ac670e6fe52cdc6c98dae9c585b8ba8e7df8965991c7ae9fbaa595cd39b551adc035fa8bad3465aae8fbaf824bec05d2d8c18b23833e35ee383aa91d6c6c67abe2a2a9ff9c7e2b2f0b84bcf15ff7bdd3ed89379b0b310b6566e4b2b50db4820a96e865258529ea41d017557cd5602a4aa095a521dafc0e0a43b1753b7ae8fde64e07e901679608246e3a9b691c3a072a222b4f31c2d6f091419c586e17661ce22306e392c4e03b7aff641aadc281b037cd232ad6a7cc58c4f9ccddff0df10276d6a1028a22734c449b433f7857f7e78782b77645a5c4df86758f3c85573dc7413af66b56240450b6fb37a6b5adac45e18a606c96a6cbd5e6e59"
+// var n = 22563152875487429106689137614824193881384868606949072613876077246817826800656408428689569792626425751757103668905790874085904308994272577249393839901594638373026083729614957772225986980106530492907313646509054189167540885492731964740591279266611759417376789694996801929389724110452859432030423682537555131205369172007786755802263956544307456888475975019812997965673565517315450787068915058834733994299513295847005782966188263824821362702920674845139389611962806159634284684262824406319009282688892418677305894992319953420121246560164710149855635006516385593897453237579149710587187652820590321935200528151126709040649
+// var e = 65537
+// var rsaSig = "6a28a6947cf43ac670e6fe52cdc6c98dae9c585b8ba8e7df8965991c7ae9fbaa595cd39b551adc035fa8bad3465aae8fbaf824bec05d2d8c18b23833e35ee383aa91d6c6c67abe2a2a9ff9c7e2b2f0b84bcf15ff7bdd3ed89379b0b310b6566e4b2b50db4820a96e865258529ea41d017557cd5602a4aa095a521dafc0e0a43b1753b7ae8fde64e07e901679608246e3a9b691c3a072a222b4f31c2d6f091419c586e17661ce22306e392c4e03b7aff641aadc281b037cd232ad6a7cc58c4f9ccddff0df10276d6a1028a22734c449b433f7857f7e78782b77645a5c4df86758f3c85573dc7413af66b56240450b6fb37a6b5adac45e18a606c96a6cbd5e6e59"
 //window.aggTest()
 //window.verifyRSA(rsaSig, n, e)
 //var sig = window.signTest(msg, sk) // async so it returns a Promise, UINT of size 96
 
-// function stringToHex(msg) {
-//     // needs to return string like "64726e3da8"
-//     return msg.split ('').map (function (c) { return c.charCodeAt (0); })
-// }
-
-// log(bytesToHex(stringToUTF8Bytes(payload)))
-let msg = '64726e3da8'.repeat(22)
-let utf8Encode = new TextEncoder();
-let encode = utf8Encode.encode(pub);
+// let msg = '64726e3da8'.repeat(22)
+// let utf8Encode = new TextEncoder();
+// let encode = utf8Encode.encode(pub);
 //var rootHash = encode.join('') // byte array
 payload = stringToHex(payload)
 // log("Str to Hex: ", stringToHex(payload))
 // log("Payload hex: ", payloadHex)
 
-console.log("VERIFIED?: ", window.verify(pub, sig, payload)) // should be True
+//console.log("VERIFIED?: ", window.verify(pub, sig, payload)) // should be True
 // ************
 // VERIFY SIGNATURE TESTS=
-var pk = window.getPublicKey(sk)
-log("PK: ", pk)
-var sig = window.sign(payload, sk).then(function(result) {
-  console.log("SIG: ", uint8ArrayToHex(result))
+// var pk = window.getPublicKey(sk)
+// log("PK: ", pk)
+// var sig = window.sign(payload, sk).then(function(result) {
+//   console.log("SIG: ", uint8ArrayToHex(result))
 
-})
-log("SIG: ", sig)
+// })
+// log("SIG: ", sig)
 // //console.log(sig)
 // var wrongSig = window.sign(msg, wrongSk)
 // let signature = sig.then(function(result) { // grabs the value of the Promise
