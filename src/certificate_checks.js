@@ -1,5 +1,7 @@
+import { SignatureGeneration } from "./sig-gen.js"
 class CertificateCheck {
 
+    
     static async verifyUpdate(masterArray, pubKeyMap) {
         // pubK = { "localhost:9000" : pubK1... ,
         //          "localhost:9001" : pubK2...,
@@ -8,46 +10,36 @@ class CertificateCheck {
         // get signature from struct object (payload)
         // get message from struct object (payload)
         // return bls.verify(aggPubK, sig, message)
+        let verified = false
         for (let o of masterArray) {
-            // aggregate(T, T2) = A -- kevin
-            console.log("M.A. :" , masterArray)
-
+            let aggKey = "";
             if (o.signers.length > 1) {
-                
+                // if two or more signers, aggregate keys
+                let keys = [];
+                for (let s of o.signers) {
+                    keys.push(pubKeyMap[s].T)
+                }
+                aggKey = window.aggregatePublicKeys(keys)
+            } else {
+                //if one signer, just set aggKey to the signers pubKey
+                aggKey = pubKeyMap[o.signers[0]].T
             }
-            var t1 = ""
-            var t2 = ""
-            var keys = []
-            for (let s of o.signers) {
-                let utf8Encode = new TextEncoder("utf-8").encode(pubKeyMap[s].T);
-                keys.push(utf8Encode)
-                console.log("KEYS*******:", keys)
+
+            let verified = await window.verify(aggKey, o.sig, SignatureGeneration.stringToHex(o.payloadLine)).then((result) => {
+                if (result.isValid) {
+                    //console.log(`${o.type} verified!`)
+                    return true
+                }
+                else {
+                    return false
+                }  
+            })
+            if (!verified) {
                 break
             }
-            // if (keys.length > 1) {
-                
-            // }
-            
-            //window.aggTest()
-            var agg = window.aggregatePublicKeys(keys) // t1 and t2 must be Uint8 array
-            //window.aggTest()
-            console.log("Agg worked")
-            // get the signature and message from masterArray
-            // check if every object (o) passes the verify 
-            let verified = window.verify(agg, o.sig, o.message).then((result) => {
-                return result.isValid
-            })
-            if (verified) {
-                console.log("Yay verification passed!")
-                continue
-            }
-            else {
-                console.log("Failure :(")
-                return 0
-            }  
         }
-        return 1
-    } 
+        return verified
+    }
     
     static verifyCertSignature(issuer, sig, publicKeys) {
         let N = publicKeys[issuer].N
@@ -106,8 +98,8 @@ class CertificateCheck {
     
     //Step 1.2: Signature Verification on monitor update
     static checkUpdate(period, sths, revs, accs, cons) {
-        let gettingItem = browser.storage.local.get(["pubK"]);
-        gettingItem.then((data) => {
+        let gettingItem = browser.storage.local.get(["pubK", "privK"]);
+        gettingItem.then(async (data) => {
             let publicKeys = data.pubK
             let masterArray = [];
             
@@ -169,8 +161,7 @@ class CertificateCheck {
                     masterArray.push(subArray);
                 }
             };
-            
-            masterArray = signatureGeneration(masterArray)
+            masterArray = await SignatureGeneration.signatureGeneration(masterArray, data.privK)
             this.verifyUpdate(masterArray, publicKeys)
         }, (error) => {
             console.log(`Error: ${error}`);

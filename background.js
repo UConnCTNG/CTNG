@@ -12,6 +12,7 @@ var option = {
     path : "/"
 }
 
+//Test function for verifying locally generated signatures for STHs, REVs, and POMs from monitor update
 function verifyGeneratedSignatures(signers, sig, msg) {
   let gettingItem = browser.storage.local.get(["pubK"]);
   gettingItem.then(async (data) => {
@@ -20,19 +21,18 @@ function verifyGeneratedSignatures(signers, sig, msg) {
       let key = data.pubK[s].T
       keys.push(hexToUint8Array(key))
     }
-    console.log("PUBKEYS", keys)
+    //console.log("PUBKEYS", keys)
     let aggKey = window.aggregatePublicKeys(keys)
-    console.log("aggpubkey", aggKey, sig, msg)
+    //console.log("aggpubkey", aggKey, sig, msg)
     let b = await window.verify(aggKey, sig, msg)
-    console.log("Result of VERIFY: ")
-    console.log(b)
     return 1;
   }, (error) => {
     console.log(`Error: ${error}`);
   });
 }
 
-
+// Takes an array of signers, a msg(payload), and private key map
+// creates a new signature by signing the payload(msg) with the signers private keys and returns it
 async function generateSignature(signers, msg, privK) {
     // Returns a uint8 array that is the *aggregated* signature
       let sigs = []
@@ -43,22 +43,21 @@ async function generateSignature(signers, msg, privK) {
         sigs.push(n) //has to return uint8 signature
       }
       let newSig = window.aggregateSignatures(sigs) //has to be uint8
-      console.log("GENERATED AGGSIG: ", newSig)
+      //console.log("GENERATED AGGSIG: ", newSig)
       return newSig;
   }
-  
-  function signatureGeneration(masterArray) {
-      for (let m of masterArray) {
-        let newSig = generateSignature(m.signers, m.payload);
-        m.sig = newSig;
-      }
-    return masterArray;
-  }
 
-function uint8ArrayToHex(uint8Array) {
-    return Array.from(uint8Array).map(byte => byte.toString(16).padStart(2, '0')).join('');
+// Takes a masterArray from checkUpdate (in cert_checks)
+// changes old sig to new generated sig for every object
+function signatureGeneration(masterArray) {
+  for (let m of masterArray) {
+    let newSig = generateSignature(m.signers, m.payload);
+    m.sig = newSig;
+  }
+  return masterArray;
 }
 
+// Takes a hex string and converts it to Uint8 byte array
 function hexToUint8Array(hex) {
     if (hex.length % 2 !== 0) {
         throw new Error('Invalid hex string length');
@@ -70,6 +69,7 @@ function hexToUint8Array(hex) {
     return bytes;
   }
   
+// Takes a Uint8 byte array and converts to hex format
 function bytesToHex(bytes) {
     return Array.from(
       bytes,
@@ -77,12 +77,12 @@ function bytesToHex(bytes) {
     ).join("");
 }
   
-// You almost certainly want UTF-8, which is
-// now natively supported:
+// Takes a string and converts it to Uint8 format like [120, 80, ...]
 function stringToUTF8Bytes(string) {
     return new TextEncoder().encode(string);
 }
 
+// Takes a string like "Hello" and converts it into hex form like "a5fb"
 function stringToHex(inputString) {
     let hexString = '';
     for (let i = 0; i < inputString.length; i++) {
@@ -106,20 +106,18 @@ CertificateCheck.checkPOMs()
 function sigGenTest() {
   let gettingItem = browser.storage.local.get(["privK"]);
   gettingItem.then(async (data) => {
-    console.log("Generating Sigs")
     var msg = "localhost:9000"
     msg = stringToHex(msg)
     let signers = ["localhost:8080", "localhost:8083"]
 
     let aggSig = await generateSignature(signers, msg, data.privK)
-    console.log("yoo", aggSig)
     let result = await verifyGeneratedSignatures(signers, aggSig, msg)
   }, (error) => {
   console.log(`Error: ${error}`);
   });
 }
 
-sigGenTest()
+//sigGenTest()
 
 // END OF SIGNATURE GENERATION LOGIC
 
@@ -146,16 +144,16 @@ let sig2 = ""
 //     //console.log(sig2)
 // })
 
-async function signMessageHelper(msg, sk1, sk2) {
-    try {
-        const result = await window.sign(msg, sk1);
-        const result2 = await window.sign(msg, sk2);
-        sig1 = bytesToHex(result);
-        sig2 = bytesToHex(result2)
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
+// async function signMessageHelper(msg, sk1, sk2) {
+//     try {
+//         const result = await window.sign(msg, sk1);
+//         const result2 = await window.sign(msg, sk2);
+//         sig1 = bytesToHex(result);
+//         sig2 = bytesToHex(result2)
+//     } catch (error) {
+//         console.error('Error:', error);
+//     }
+// }
 
 //window.aggTest()
 // log("SIG1 and 2: ", sig, sig2)
@@ -180,7 +178,7 @@ async function signMessageHelper(msg, sk1, sk2) {
 // let utf8Encode = new TextEncoder();
 // let encode = utf8Encode.encode(pub);
 //var rootHash = encode.join('') // byte array
-payload = stringToHex(payload)
+// payload = stringToHex(payload)
 // log("Str to Hex: ", stringToHex(payload))
 // log("Payload hex: ", payloadHex)
 

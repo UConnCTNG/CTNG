@@ -12,7 +12,7 @@ class Client {
   async logStorageUpdate(changes) {
     const updatedItems = Object.keys(changes)
     for (const item of updatedItems) {
-      console.log(`${item} has changed value from ${changes[item].oldValue}`)
+      //console.log(`${item} has changed value from ${changes[item].oldValue}`)
     }
   }
 
@@ -58,7 +58,6 @@ class Client {
 
   async storeCertificate(data) {
     // returns status (1 if successfully stored)
-    this.log("In store cert func")
     // currently storing as a serial number: certInfo pair
     // idk if this is final for the key
     if (! this.isCertificateStored(data.SerialNumber)) {
