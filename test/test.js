@@ -2,7 +2,7 @@ import { Client } from "../src/client.js";
 import { CertificateCheck } from "../src/certificate_checks.js";
 
 
-class Test {
+class TestDriver {
   constructor() {
   }
 
@@ -10,7 +10,7 @@ class Test {
     // Testing Step 1
     // calling checkSignatures() for step 1.1: signature check on the certificate
     // calling checkUpdate() for step 1.2: Signature Verification on monitor update
-    
+    CertificateCheck.checkSignatures()
     //client.storeCertObject()
 
 
@@ -32,6 +32,7 @@ class Test {
     log("INITIALIZING TEST DRIVER.")
 
     let client = new Client(log)
+
     // Testing storing cert and public key map
     client.storeCertObject()
     
@@ -45,9 +46,11 @@ class Test {
     */
     for (let p = 0; p < 4; p++) {
       const store = await client.getMonitorUpdates(p);
-      this.verificationChecks();
-      await(60000);
+      //this.verificationChecks();
+      //await(60000);
     }
+
+    this.verificationChecks()
 
     // inside storage function call out to connector function
     //functionSampleConnector();
@@ -70,8 +73,10 @@ class Test {
     }
   }
 
-
 }
+
+var testDriver = new TestDriver()
+testDriver.runTests()
 
 
 function delay60Seconds(){
@@ -80,4 +85,6 @@ function delay60Seconds(){
   }, 60000);
 }
 
-export { Test };
+
+
+export { TestDriver };

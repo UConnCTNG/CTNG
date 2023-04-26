@@ -97,10 +97,10 @@ var log = console.log.bind(console)
 // https://developer.chrome.com/extensions/match_patterns
 var ALL_SITES = { urls: ['<all_urls>'] }
 
-var tester = new Test()
-await tester.runTests()
-var client = new Client(log)
-CertificateCheck.checkPOMs()
+// var tester = new Test()
+// await tester.runTests()
+// var client = new Client(log)
+// CertificateCheck.checkPOMs()
 
 // SIGNATURE GENERATION LOGIC
 function sigGenTest() {

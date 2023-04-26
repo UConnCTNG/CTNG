@@ -4168,13 +4168,25 @@ exports.VERSION_FULL = VERSION_FULL;
 
 }).call(this)}).call(this,require("buffer").Buffer)
 },{"buffer":3}],12:[function(require,module,exports){
-window.verifyRSA = function(sig, n, e) {
+(function (Buffer){(function (){
+window.verifyRSA = function(sig, cert, msg) {
   var rs = require('jsrsasign');
   var rsu = require('jsrsasign-util');
-  var rsa = new RSAKey();
-  rsa.setPublic(n, e);
-  return rsa.verifyString(sig, 'sha256')
+  var sig = new rs.KJUR.crypto.Signature({"alg": "SHA256withRSA"});
+  sig.init(cert); // signer's certificate
+  sig.updateString(msg)
+  var isValid = sig.verify(sig)
+  return isValid
+  // var rsa = new RSAKey();
+  // rsa.setPublic(n, e);
+  // return rsa.verifyString(sig, 'sha256')
 }
 
+window.convertRSASignature = function(signature) {
+  const hexSignature = signature.replace(/:/g, '');
+  const buffer = Buffer.from(hexSignature, 'hex').toString('base64');
+  return buffer
+}
 
-},{"jsrsasign":11,"jsrsasign-util":10}]},{},[12]);
+}).call(this)}).call(this,require("buffer").Buffer)
+},{"buffer":3,"jsrsasign":11,"jsrsasign-util":10}]},{},[12]);

@@ -1,6 +1,5 @@
 import { SignatureGeneration } from "./sig-gen.js"
 class CertificateCheck {
-
     
     static async verifyUpdate(masterArray, pubKeyMap) {
         // pubK = { "localhost:9000" : pubK1... ,
@@ -41,12 +40,17 @@ class CertificateCheck {
         return verified
     }
     
-    static verifyCertSignature(issuer, sig, publicKeys) {
+    static verifyCertSignature(issuer, sig, rawCert, publicKeys) {
+        console.log(issuer, sig)
         let N = publicKeys[issuer].N
         let E = publicKeys[issuer].E
-        let verified = window.verifyRSA(sig, N, E).then((result) => {
-            return result.isValid
-        })
+        console.log("N", N)
+        console.log("E", E)
+        console.log(window.createHash(rawCert))
+        const sigHex = BigInt(`0x${sig}`);
+        console.log(sigHex ** BigInt(E) % BigInt(N))
+        let verified = window.verifyRSA(sig, rawCert, window.createHash(rawCert))
+        console.log("VERIFIED? ", verified)
         return verified
     }
 
@@ -61,16 +65,22 @@ class CertificateCheck {
 
     // Step 1.1: Signature check on cert and on STHs
     static checkSignatures() {
-        let gettingItem = browser.storage.local.get(["cert", "pubK"]);
+        console.log("CHECK SIGS RUNNNING")
+        let gettingItem = browser.storage.local.get(["cert", "pubK", "rawCert"]);
         gettingItem.then((data) => {
             let cert = data.cert
+            let rawCert = data.rawCert
             let publicKeys = data.pubK
-            
-            //parse out : of cert.Signature
-            let item = JSON.stringify(cert.Signature);
-            let sig = item.replace(/:/g,'');
+            console.log(cert)
+            rawCert.trim()
+
+
+            let sig = cert.Signature.replace(/:/g,''); //window.convertRSASignature(cert.Signature)
+            console.log(sig)
+            //rawCert = window.createHash(rawCert)
+            console.log("RAWCERT: ", rawCert)
             //First part: checking signature of cert with CA's public key
-            if (!verifyCertSignature(cert.Issuer, sig, publicKeys)) {
+            if (!this.verifyCertSignature(cert.Issuer, sig, rawCert, publicKeys)) {
                 return 0 //Fail
             }
 
