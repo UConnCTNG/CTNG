@@ -4169,17 +4169,97 @@ exports.VERSION_FULL = VERSION_FULL;
 }).call(this)}).call(this,require("buffer").Buffer)
 },{"buffer":3}],12:[function(require,module,exports){
 (function (Buffer){(function (){
-window.verifyRSA = function(sig, cert, msg) {
+// DO NOT TOUCH
+// THIS WORKS AND WILL BE USED FOR REFERENCE
+
+window.verifyRSA = function(sigValueHex, rsaPublicKey, cert) {
   var rs = require('jsrsasign');
   var rsu = require('jsrsasign-util');
+  // initialize
   var sig = new rs.KJUR.crypto.Signature({"alg": "SHA256withRSA"});
-  sig.init(cert); // signer's certificate
-  sig.updateString(msg)
-  var isValid = sig.verify(sig)
+  // initialize for signature validation
+  sig.init(rsaPublicKey); // signer's certificate
+  // update data
+  sig.updateString(cert)
+  // verify signature
+  var isValid = sig.verify(sigValueHex)
+  console.log('Verified msg? ', isValid)
   return isValid
-  // var rsa = new RSAKey();
-  // rsa.setPublic(n, e);
-  // return rsa.verifyString(sig, 'sha256')
+}
+
+window.signRSA = function(cert, rsaPublicKey) {
+  var rs = require('jsrsasign');
+  var rsu = require('jsrsasign-util');
+  var sig = new rs.KJUR.crypto.Signature({ "alg": "SHA256withRSA" });
+  var rsaKeypair = rs.KEYUTIL.generateKeypair("RSA", 2048);
+
+  // let rsaPrivateKey = rsaKeypair.prvKeyObj //RSA Object
+  // let rsaPublicKey = rsaKeypair.pubKeyObj //RSA Object
+  let rsaPrivateKey = "-----BEGIN PRIVATE KEY----- MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDJdSJ/fn/YXBlq zVHUBbgUQJRbeyIjaAKI2DWXic+jBcAInZgmj7bdxIASXhe6SBHKGI96eHejg8Re ISF14WsqScCZlJS7m1+k3zMDxSMJzDV7EBuXUjmeCXNbI1wvzB4kCm4LL4UOcPCz FAl07YcDs/Mam97CPyuwk+p0euDkUzdcfgoJbygz3+d/NIW9VVQzyCTObBDIhGz2 iUTtm8dW3IKXdVRkpaIxnkZZVlAT2fKsF3ccFAs49kZycPqjXbhc4StiEmgdu5PR IaQE30IgzryzZjRMe4FAtWLExIecpl5DdDjkZP1mxn6Eo9hqo65mSGt4XfFU/ywQ wkNFd141AgMBAAECggEAfr+MuexL4UNo1nJhpmUGwO80qC3bd61L0u89IJ+bHLVU cdc9UB2hbvvfnC7I/PG1B5LWSraahy0zEgoENFdkBlIqtDXwMez6iw/G1/tjJRnv GAM1aMpZ592IT3H64TOqTwCk5bK7Iy/ZsMHNhVygUqsYK8ifqVT3VvxpSWm6Lswx kgFxhk8kSeY6GQYDH6h7jldXvctMMVxf+Ntvpg9TI1pPZK9wmGCwqyS0yFqd5yBb uNT8Jj1Y6+jKbjAUtwokCvhEiO7gQD1YVul1PWzgiMZSxub+cuQKoO0efZHoq5Wp yEOGHrAMDTmQHO/wHjDvAy6McuSlhr06BzDDswD6AQKBgQDPH/zZpZ2r+7K0HaIF LXXBj1+7yS1SFHe6asDyHe0T9hEwMF13HEtLWwzlfrOyPCF/g3lyLd0k7eJhwzK9 Ejs6+YSaNhzVWYjKbI7J/lWyddFeevL0O8KB/+oQuPmSvzrRb8ub8bD7Cu3X7PgY mlljhteft2uK8PzA85DJVARjtQKBgQD4/sp3UAChOPlqJVRQ1Qov/QSU0kpsZdRz lT3uIqrAM25nv3rr0XGSUu/GTwgs8lwto7rTznkQV7hh4aj/kSEhLVHhADq635S2 LoqRhAs6fOKpTl/PE0vSTYrF6cq7Q7YVEbY+rNFiQWM2bj8l05+4yIVnlMJxJdZ+ bsNt4zCggQKBgFCMwRmnhdUPkqTnbU4UKtp2tqViDIUCPrm5sIW4S63aoT6bYI3k 7AdHRpGtn5auOdzMNZvI6FrnRIX+kqnjADPkO8R5TOdP5ZnLdBBsH8nCdgUHTZrb 7r3913pfZXfDdM1ka8uex9QpoOu7VZTD2gWRuCN+Ao3LQJCNaH5TdU2NAoGBAO1x C2H7yJ311uKB9oWeorhgb537az0zXgVarFQKewoOAZqt3mpCsCr5K+3QL9uswnpD SEXy/z+2Zv3wU1hi7VTWAt6teVP7IbUZbMqXQJ3lub/6HSM7I3LIvy08ZTduupQc 782Uv5cTA6lEOLO5uvZbQdwk38dGbeTjezmvDRABAoGAZ6FKpWYfqARbIoXh1rAH XTrOooEGfXFl+BTeflg30TYtrIVYtMuBgH+8neY8xSudj7qFhcd0tkeDVKVmmavL i3tkq+cyq0AXtwsH4Fgct7wYvo8JyAW/hK3SJarUfSHEjExf0qX4mcHO2/oUhlWY qZAeQol9ITHPERJBau6LWZM= -----END PRIVATE KEY-----"
+
+  sig.init(rsaPrivateKey);   // rsaPrivateKey of RSAKey object
+  sig.updateString(cert)
+  // // calculate signature
+  var sigValueHex = sig.sign()
+  return { sigValueHex, rsaPublicKey }
+}
+
+window.createPublicKeyRSA = function(e, n) {
+  var rs = require('jsrsasign');
+  var rsu = require('jsrsasign-util');
+  var pubKey = new rs.RSAKey() //RSAKey();
+  pubKey.setPublic(n.toString(16), e.toString(16));
+  pubKey.isPublic = true;
+  return pubKey
+}
+
+window.getCertSignature = function(cert) {
+  var rs = require('jsrsasign');
+  var rsu = require('jsrsasign-util');
+  var c = new rs.X509();
+  c.readCertPEM(cert);
+  return c.getSignatureValueHex()
+}
+
+// if (alg == "RSA") {
+//   var keylen = keylenOrCurve;
+//   var prvKey = new RSAKey();
+//   prvKey.generate(keylen, '10001');
+//   prvKey.isPrivate = true;
+//   prvKey.isPublic = true;
+  
+//   var pubKey = new RSAKey();
+//   var hN = prvKey.n.toString(16);
+//   var hE = prvKey.e.toString(16);
+//   pubKey.setPublic(hN, hE);
+//   pubKey.isPrivate = false;
+//   pubKey.isPublic = true;
+  
+//   var result = {};
+//   result.prvKeyObj = prvKey;
+//   result.pubKeyObj = pubKey;
+//   return result;
+
+window.getPublicKeyRSA = function(cert) {
+  var rs = require('jsrsasign');
+  var rsu = require('jsrsasign-util');
+  var c = new rs.X509();
+  c.readCertPEM(cert);
+  return c.getPublicKey()
+}
+
+window.testRSA = function(rawCert) {
+  var rs = require('jsrsasign');
+  var c = new rs.X509();
+  c.readCertPEM(rawCert);
+  console.log("CC: ", c.getPublicKey())
+  console.log(c.getSignatureAlgorithmField())
+  var pubKey = rs.KEYUTIL.getKey(rawCert); //c.getPublicKey();
+  console.log("pk: ", pubKey)
+  var sig = c.getSignatureValueHex();
+  console.log(c.verifySignature(pubKey))
+
+  console.log("PubKey, Sig, ", {pubKey, sig})
 }
 
 window.convertRSASignature = function(signature) {
