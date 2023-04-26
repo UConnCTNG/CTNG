@@ -212,8 +212,9 @@ class CertificateCheck {
 
     
     //Step 2: Check if CA and Loggers are in CONs and ACCs PoM lists
-    static checkPOMs(period) {
-        let gettingItem = browser.storage.local.get([`cons${period}`, `accs${period}`, "cert"]);
+    static checkPOMs(p) {
+        let period = String(p)
+        let gettingItem = browser.storage.local.get([`cons${period.toString()}`, `accs${period.toString()}`, "cert"]);
         gettingItem.then((data) =>
         {
             var certCA = data.cert["Issuer"]
@@ -221,19 +222,22 @@ class CertificateCheck {
             
             var conLoggerCount = 0
             var accLoggerCount = 0
+
+            let cons  = data[Object.keys(data)[0]]
+            let accs = data[Object.keys(data)[1]]
             
             var conPOMs = []
-            for (var i = 0; i < data.cons1.length; i++) {
-                conPOMs.push(data.cons1[i].payload[0])
-                if (loggers.includes(data.cons1[i].payload[0])) {
+            for (var i = 0; i < cons.length; i++) {
+                conPOMs.push(cons[i].payload[0])
+                if (loggers.includes(cons[i].payload[0])) {
                 conLoggerCount += 1;
                 }
             }
             
             var accPOMs = []
-            for (var i = 0; i < data.accs1.length; i++) {
-                accPOMs.push(data.accs1[i].payload[0])
-                if (loggers.includes(data.accs1[i].payload[0])) {
+            for (var i = 0; i < accs.length; i++) {
+                accPOMs.push(accs[i].payload[0])
+                if (loggers.includes(accs[i].payload[0])) {
                 accLoggerCount += 1;
                 }
             }
@@ -241,19 +245,19 @@ class CertificateCheck {
             var loggerCountCheck = (conLoggerCount == 0 && accLoggerCount == 0)
             
             if (conPOMs.length == 0 && accPOMs.length == 0) {
-                console.log("Pass.")
+                console.log("Pass. 1")
                 return 1; //success
             }
             else if ((!conPOMs.includes(certCA) && !accPOMs.includes(certCA)) && loggerCountCheck) {
-                console.log("Pass.")
+                console.log("Pass. 2")
                 return 1; //success
             }
             else if ((conPOMs.includes(certCA) || accPOMs.includes(certCA)) && loggerCountCheck) {
-                console.log("Fail.")
+                console.log("Fail. 3")
                 return 0; //fail
             }
             else {
-                console.log("Fail.")
+                console.log("Fail. 4")
                 return 0; //fail
             }
         }
