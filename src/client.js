@@ -254,9 +254,9 @@ class Client {
     }
     var privK = {
       "localhost:8080" : "58e40533351d5e023133a1f355bbeaed1ef7f437faf9625169a2b37c9c977f38",
-  "localhost:8081" : "1074b2fe01cf4b94297d649825841d402c8e8e41268718cf57673dc488bd503f",
-  "localhost:8082" : "10634df2db777e682147fdc37462a49b604947a35becfd09b0fab415ce2c593f",
-  "localhost:8083" : "029c6a6ebb01437e4541d07a50adb6741ea8d7704bf48e2f07712033a363be04",
+      "localhost:8081" : "1074b2fe01cf4b94297d649825841d402c8e8e41268718cf57673dc488bd503f",
+      "localhost:8082" : "10634df2db777e682147fdc37462a49b604947a35becfd09b0fab415ce2c593f",
+      "localhost:8083" : "029c6a6ebb01437e4541d07a50adb6741ea8d7704bf48e2f07712033a363be04",
     }
     browser.storage.local.set({ cert });
     browser.storage.local.set({ pubK });

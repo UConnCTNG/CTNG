@@ -11,7 +11,7 @@ window.getPublicKey = function(key) {
 }
 
 // Main verify function
-window.verify = async function(key, signature, message) {
+window.verifyBLS = async function(key, signature, message) {
   const bls = require('@noble/bls12-381');
   const isValid = await bls.verify(signature, message, key);
   return {isValid};
@@ -27,7 +27,7 @@ window.verifyTest = async function(key, signature, message) {
   return {isValid};
 }
 
-window.sign = async function(message, privateKey) {
+window.signBLS = async function(message, privateKey) {
   const bls = require('@noble/bls12-381');
   //const bls = require('@noble/curves/bls12-381');
 

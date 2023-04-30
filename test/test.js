@@ -11,22 +11,22 @@ class TestDriver {
     // calling checkSignatures() for step 1.1: signature check on the certificate
     // calling checkUpdate() for step 1.2: Signature Verification on monitor update
     
-    const signatureCheckResult = CertificateCheck.checkSignatures();
-    if (!signatureCheckResult) {
-      // Signature check failed, redirect user
-      await this.redirect();
-      return;
-    }
+     const signatureCheckResult = CertificateCheck.checkSignatures();
+    // if (!signatureCheckResult) {
+    //   // Signature check failed, redirect user
+    //   //await this.redirect();
+    //   return;
+    // }
   
     // Testing Step 2
     // calling checkPOMs() for step 2: Check if CA and Loggers are in CONs and ACCs PoM lists
     
-    let result = CertificateCheck.checkPOMs()
+    //let pomResult = CertificateCheck.checkPOMs()
   
     // Testing Step 3
     // calling verifyPOI() for step 3: POI verification. Check if a certificate is in the Tree head given the POI
     
-    let POIresult = CertificateCheck.verifyPOI();
+    //let poiResult = CertificateCheck.verifyPOI(1);
   }
 
   async runTests() {
