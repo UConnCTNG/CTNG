@@ -1,5 +1,6 @@
 import { Client } from "../src/client.js";
 import { CertificateCheck } from "../src/certificate_checks.js";
+import { certs } from "../src/config.js";
 
 
 class TestDriver {
@@ -29,9 +30,23 @@ class TestDriver {
     //let poiResult = CertificateCheck.verifyPOI(1);
   }
 
+  async init() {
+    // Create and store a large JSON object that maps the test urls to the STHs
+    let tests = {}
+  
+    for (const [key, value] of Object.entries(certs)) {
+      //console.log(key, window.getSTH(value))
+      tests[key] = window.getSTH(value)
+    }
+    console.log(tests)
+
+  }
+
   async runTests() {
     var log = console.log.bind(console)
     log("INITIALIZING TEST DRIVER.")
+
+    this.init()
   
     let client = new Client(log)
   
