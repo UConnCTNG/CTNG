@@ -4,9 +4,8 @@ import { cert } from "./config.js"
 //const {cert} = require("./config.js")
 class Client {
   
-  constructor(sites, log) {
+  constructor(sites) {
     this.sites = sites; 
-    this.log = console.log.bind(console)
   }
 
   async logStorageUpdate(changes) {
@@ -22,7 +21,7 @@ class Client {
       return browser.storage.local.get(serialNumber)
     } 
     catch (error) {
-      this.log(error)
+      console.log(error)
       return 0
     }
   }
@@ -44,13 +43,13 @@ class Client {
       BasicConstraintsValid: true
     }
 
-    this.log(certInfo)
+    console.log(certInfo)
 
     try {
       this.storeCertificate(certInfo)
     } 
     catch (error) {
-      this.log(error)
+      console.log(error)
       return 0
     }
     return certInfo
@@ -61,7 +60,7 @@ class Client {
     // currently storing as a serial number: certInfo pair
     // idk if this is final for the key
     if (! this.isCertificateStored(data.SerialNumber)) {
-      browser.storage.local.set({[data.SerialNumber]: data}).then(this.log("Storage set!"))
+      browser.storage.local.set({[data.SerialNumber]: data}).then(console.log("Storage set!"))
       return 1
     }
     return 0
@@ -135,46 +134,15 @@ class Client {
     return period + 1;
   }
 
-  storeCertObject() {
-    var rawCert = "-----BEGIN CERTIFICATE----- MIIJTzCCCDegAwIBAgIRAP6oXqXMXYR8meZ3sp2Ap4EwDQYJKoZIhvcNAQELBQAw GTEXMBUGA1UEAxMObG9jYWxob3N0OjkxMDAwHhcNMjMwMzEzMjE1OTI5WhcNMjQw MzEyMjE1OTI5WjAaMRgwFgYDVQQDEw9UZXN0aW5nIER1bW15IDAwggEiMA0GCSqG SIb3DQEBAQUAA4IBDwAwggEKAoIBAQC1GiaUwPMdj2ELYmQIpiZ/PaNTNaaPuNxW f5GY/PRIeajMtKLT+oWyraqGFJHw65yH135+bjt6ML2JqCnaqJqUjui1ViU7neg+ dNKwRxEhfIBVNgNrbpjmQT3SLfLB3O7NIRnWd6KRAIY6UfZb/dcDx6BhmWtyfhN0 7/6agWuFVom+usBlQlnpkdeg49PiyKIhTTUKXJkNelfHV6Yaf6OVSdKMMNwVvv3o q1z5v164+cbw9fL75ylcDa/syWsFAO1TgRVGKvSs6GtDH2YaxGygQ09GTE334CyD AVcfsUR4vEqevEoLINlCKhdZIfOzJT2okC1yLaLX+E2Wr59cgJmVAgMBAAGjggaP MIIGizAOBgNVHQ8BAf8EBAMCBaAwEwYDVR0lBAwwCgYIKwYBBQUHAwEwDAYDVR0T AQH/BAIwADApBgNVHQ4EIgQgzv3FtXhJkHO29rdyIaa0L8ZNCms+BjufW9An3NiC 9cUwKwYDVR0jBCQwIoAggKtJm74QW076w87V5M8MxmYdlgfn6wpp/4bnx31YAC0w FAYDVR0RBA0wC4IJbG9jYWxob3N0MIIF5gYDVR0fBIIF3TCCBdkwD6ANoAuGCXsi UklEIjoxfTCCBcSgggXAoIIFvIaCBbh7CiAgIlNUSCI6IHsKICAgICJhcHBsaWNh dGlvbiI6ICJDVG5nIiwKICAgICJwZXJpb2QiOiAiMCIsCiAgICAidHlwZSI6ICJo dHRwOi8vY3RuZy51Y29ubi5lZHUvMTAxIiwKICAgICJzaWduZXIiOiAibG9jYWxo b3N0OjkwMDAiLAogICAgInNpZ25lcnMiOiBudWxsLAogICAgInNpZ25hdHVyZSI6 IFsKICAgICAgIntcInNpZ1wiOlwiNmEyOGE2OTQ3Y2Y0M2FjNjcwZTZmZTUyY2Rj NmM5OGRhZTljNTg1YjhiYThlN2RmODk2NTk5MWM3YWU5ZmJhYTU5NWNkMzliNTUx YWRjMDM1ZmE4YmFkMzQ2NWFhZThmYmFmODI0YmVjMDVkMmQ4YzE4YjIzODMzZTM1 ZWUzODNhYTkxZDZjNmM2N2FiZTJhMmE5ZmY5YzdlMmIyZjBiODRiY2YxNWZmN2Jk ZDNlZDg5Mzc5YjBiMzEwYjY1NjZlNGIyYjUwZGI0ODIwYTk2ZTg2NTI1ODUyOWVh NDFkMDE3NTU3Y2Q1NjAyYTRhYTA5NWE1MjFkYWZjMGUwYTQzYjE3NTNiN2FlOGZk ZTY0ZTA3ZTkwMTY3OTYwODI0NmUzYTliNjkxYzNhMDcyYTIyMmI0ZjMxYzJkNmYw OTE0MTljNTg2ZTE3NjYxY2UyMjMwNmUzOTJjNGUwM2I3YWZmNjQxYWFkYzI4MWIw MzdjZDIzMmFkNmE3Y2M1OGM0ZjljY2RkZmYwZGYxMDI3NmQ2YTEwMjhhMjI3MzRj NDQ5YjQzM2Y3ODU3ZjdlNzg3ODJiNzc2NDVhNWM0ZGY4Njc1OGYzYzg1NTczZGM3 NDEzYWY2NmI1NjI0MDQ1MGI2ZmIzN2E2YjVhZGFjNDVlMThhNjA2Yzk2YTZjYmQ1 ZTZlNTlcIixcImlkXCI6XCJsb2NhbGhvc3Q6OTAwMFwifSIsCiAgICAgICIiCiAg ICBdLAogICAgInRpbWVzdGFtcCI6ICIyMDIzLTAzLTEzVDIxOjU5OjMxWiIsCiAg ICAiY3J5cHRvX3NjaGVtZSI6ICJSU0EiLAogICAgInBheWxvYWQiOiBbCiAgICAg ICJsb2NhbGhvc3Q6OTAwMCIsCiAgICAgICJ7XCJTaWduZXJcIjpcImxvY2FsaG9z dDo5MDAwXCIsXCJUaW1lc3RhbXBcIjpcIjIwMjMtMDMtMTNUMjE6NTk6MzFaXCIs XCJSb290SGFzaFwiOlwiXFx1ZmZmZFxcdWZmZmRcXHUwMDEwXFx1ZmZmZCdAR2pc XHVmZmZkKlxcdWZmZmRxeey5o1xcdWZmZmRiXFx1MDAxM1xcdWZmZmRcXG5cXHVm ZmZkXFx1ZmZmZD9cXHVmZmZkXFx1ZmZmZFxcdWZmZmRcXHVmZmZkN1xcdWZmZmRc XHUwMDFkXFx1ZmZmZFwiLFwiVHJlZVNpemVcIjoxMn0iLAogICAgICAiIgogICAg XQogIH0sCiAgIlBPSSI6IHsKICAgICJTaWJsaW5nSGFzaGVzIjogWwogICAgICAi WjdpUFZQdlpRUllXUXVEaWFQeDViWDNjcnJ3T0lrOURwVkJrNisyZ1R2dz0iLAog ICAgICAiYTNKWnNTdGcxeEhhWGZsNlBUN1FKWjM0SUl1N2RBWGp4cjlnTU82VE5h bz0iLAogICAgICAidnFBZEJYTEt2bVZWeE9hYStHQVlsSXVUb3VVVGRpK21SLzdB aGk5NnJHQT0iLAogICAgICAiQ3VTZGk5QXV6NVVjOWQ0MnNsNkErdHJkSXFPUXpz SDBlbWZFRDRxNmFxcz0iCiAgICBdLAogICAgIk5laWdoYm9ySGFzaCI6ICI2Z2th WUl0MXpNNHBhU1dCSTM0cEpkdElXQ29DS3lZQUNFT0Rxa3VTeUNNPSIKICB9Cn0w DQYJKoZIhvcNAQELBQADggEBACUfsrUbzzZki5/JPYrX23fAxpyA8sMdr4TyqNVe jo8rMT78vUS/8UUAwQ2UnEkIbwr8pIJQLNm66Kc5HNJFQySosZ3608FaZ+5UGLw8 /9cXW8Jyzgs8vLDNJaCYH/VSZ79f5AC0xZgLWRfiP48FX/mREsNplBLyg5Cx80hr uOzvFEdwsrklWsFeLIBii/SGcJPaJ2rK4rVGDpr6Us2qldjgbZgDBdn+PJnkjuqQ /7blPm9LDY2if+WFXeJiSHgWSoDBm0A+3EYyZ9cBLtku97DhF7LV6GQwXtnvRAg0 N/37Iw5oylpoqSWKtXJExXW3cC2LBet1w0Lgp/4XhflyodM= -----END CERTIFICATE-----"
+  store(name, obj) {
+    browser.storage.local.set({ [name]: obj });
+  }
 
-    var cert = {
-      "Issuer": "localhost:9100",
-      "Serial Number": "fe:a8:5e:a5:cc:5d:84:7c:99:e6:77:b2:9d:80:a7:81",
-      "Signature": "25:1f:b2:b5:1b:cf:36:64:8b:9f:c9:3d:8a:d7:db:77:c0:c6:9c:80:f2:c3:1d:af:84:f2:a8:d5:5e:8e:8f:2b:31:3e:fc:bd:44:bf:f1:45:00:c1:0d:94:9c:49:08:6f:0a:fc:a4:82:50:2c:d9:ba:e8:a7:39:1c:d2:45:43:24:a8:b1:9d:fa:d3:c1:5a:67:ee:54:18:bc:3c:ff:d7:17:5b:c2:72:ce:0b:3c:bc:b0:cd:25:a0:98:1f:f5:52:67:bf:5f:e4:00:b4:c5:98:0b:59:17:e2:3f:8f:05:5f:f9:91:12:c3:69:94:12:f2:83:90:b1:f3:48:6b:b8:ec:ef:14:47:70:b2:b9:25:5a:c1:5e:2c:80:62:8b:f4:86:70:93:da:27:6a:ca:e2:b5:46:0e:9a:fa:52:cd:aa:95:d8:e0:6d:98:03:05:d9:fe:3c:99:e4:8e:ea:90:ff:b6:e5:3e:6f:4b:0d:8d:a2:7f:e5:85:5d:e2:62:48:78:16:4a:80:c1:9b:40:3e:dc:46:32:67:d7:01:2e:d9:2e:f7:b0:e1:17:b2:d5:e8:64:30:5e:d9:ef:44:08:34:37:fd:fb:23:0e:68:ca:5a:68:a9:25:8a:b5:72:44:c5:75:b7:70:2d:8b:05:eb:75:c3:42:e0:a7:fe:17:85:f9:72:a1:d3",
-      "Validity": {
-        "Not Before": "Mar 13 21:59:29 2023 GMT",
-        "Not After": "Mar 12 21:59:29 2024 GMT"
-      },
-      "Subject": "CN = Testing Dummy 0",
-      "STH": {
-        "application": "CTng",
-        "period": "0",
-        "type": "http://ctng.uconn.edu/101",
-        "signer": "localhost:9000",
-        "signers": null,
-        "signature": [
-          "{\"sig\":\"6a28a6947cf43ac670e6fe52cdc6c98dae9c585b8ba8e7df8965991c7ae9fbaa595cd39b551adc035fa8bad3465aae8fbaf824bec05d2d8c18b23833e35ee383aa91d6c6c67abe2a2a9ff9c7e2b2f0b84bcf15ff7bdd3ed89379b0b310b6566e4b2b50db4820a96e865258529ea41d017557cd5602a4aa095a521dafc0e0a43b1753b7ae8fde64e07e901679608246e3a9b691c3a072a222b4f31c2d6f091419c586e17661ce22306e392c4e03b7aff641aadc281b037cd232ad6a7cc58c4f9ccddff0df10276d6a1028a22734c449b433f7857f7e78782b77645a5c4df86758f3c85573dc7413af66b56240450b6fb37a6b5adac45e18a606c96a6cbd5e6e59\",\"id\":\"localhost:9000\"}",
-          ""
-        ],
-        "timestamp": "2023-03-13T21:59:31Z",
-        "crypto_scheme": "RSA",
-        "payload": [
-          "localhost:9000",
-          "{\"Signer\":\"localhost:9000\",\"Timestamp\":\"2023-03-13T21:59:31Z\",\"RootHash\":\"\\ufffd\\ufffd\\u0010\\ufffd'@Gj\\ufffd*\\ufffdqy...\\ufffdb\\u0013\\ufffd\\n\\ufffd\\ufffd?\\ufffd\\ufffd\\ufffd\\ufffd7\\ufffd\\u001d\\ufffd\",\"TreeSize\":12}",
-          ""
-        ]
-      },
-      "POI": {
-        "SiblingHashes": [
-          "Z7iPVPvZQRYWQuDiaPx5bX3crrwOIk9DpVBk6+2gTvw=",
-          "a3JZsStg1xHaXfl6PT7QJZ34IIu7dAXjxr9gMO6TNao=",
-          "vqAdBXLKvmVVxOaa+GAYlIuTouUTdi+mR/7Ahi96rGA=",
-          "CuSdi9Auz5Uc9d42sl6A+trdIqOQzsH0emfED4q6aqs="
-        ],
-        "NeighborHash": "6gkaYIt1zM4paSWBI34pJdtIWCoCKyYACEODqkuSyCM="
-      }
-    }
+  storeCertObject(cert) {
+
+    
+
+
     var pubK = {
       "localhost:8080": {
         "N": "26662804590643791677072420283015760587154157689605758379851514719978215919521412275737378885372083550411882040376077309761261484106214413033460894746877699324502479463230801695576355786865962140694202973691474123823321191258646836707477909182205447437076192587695438239613061024503577254884843896577068040920791905775746148630212163280965168760538339740807571761811895131523126047043418963457662633770919926265619061187002884302414655744205957559232712028110168938083940564931189422013050907554982057611826141444604099721487636098145869054765536197456663820722806366750245090144679903197197623431235455716208809440731",
@@ -261,7 +229,6 @@ class Client {
     browser.storage.local.set({ cert });
     browser.storage.local.set({ pubK });
     browser.storage.local.set({ privK });
-    browser.storage.local.set({ rawCert });
   }
 
 }

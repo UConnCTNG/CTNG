@@ -4198,6 +4198,18 @@ window.getSTH = function(certPEM) {
   return ctngExt.STH
 }
 
+window.getCert = function(certPEM) {
+  var rs = require('jsrsasign');
+  var rsu = require('jsrsasign-util');
+  //Step 1: Parse cert
+  var certNew = new rs.X509();
+  certNew.readCertPEM(certPEM);
+  //Step 2: Parse CTng extension
+  var ctngExt = certNew.getExtCRLDistributionPoints().array[1].dpname.full[0].uri
+  ctngExt = JSON.parse(ctngExt)
+  return ctngExt
+}
+
 window.certParser = function(publicKeys, certPEM) { 
   //Takes pubK map in for getting E and N of signer
   //Need to require jsrsasign here

@@ -1,6 +1,6 @@
 {
-    "manifest_version": 2,
-    "name": "CTng Extension",
+    "manifest_version": 3,
+    "name": "CTng",
     "version": "1.0",
     "content_scripts": [
         {
@@ -12,11 +12,20 @@
           ]
         }
       ],
-    "description": "Trying to store information",
+    "description": "The CTng browser extension.",
 
     "background": {
       "page": "index.html",
       "scripts": ["src/client.js", "src/bundle.js", "test/test.js"]
+    },
+    "action": {
+      "default_popup": "index.html",
+      "default_icon": {
+        "48": "images/icon.png"
+      }
+    },
+    "icons": {
+      "48": "images/icon.png"
     },
 
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",

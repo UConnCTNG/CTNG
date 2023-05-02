@@ -5,6 +5,8 @@ import { certs } from "../src/config.js";
 
 class TestDriver {
   constructor() {
+    this.currentCA = null;
+    this.client = null;
   }
 
   async verificationChecks() {
@@ -32,26 +34,21 @@ class TestDriver {
 
   async init() {
     // Create and store a large JSON object that maps the test urls to the STHs
-    let tests = {}
-  
+    this.client = new Client()
     for (const [key, value] of Object.entries(certs)) {
       //console.log(key, window.getSTH(value))
-      tests[key] = window.getSTH(value)
+      this.client.store(key, value)
     }
-    console.log(tests)
-
   }
 
   async runTests() {
-    var log = console.log.bind(console)
-    log("INITIALIZING TEST DRIVER.")
-
+    console.log("INITIALIZING TEST DRIVER.")
+  
     this.init()
+
   
-    let client = new Client(log)
-  
-    // Testing storing cert and public key map
-    client.storeCertObject()
+    // Storing cert given a selected CA setting (and public key map)
+    this.client.storeCertObject()
   
     // Testing redirect function
     // redirect_tester_x = 1
@@ -61,7 +58,7 @@ class TestDriver {
   
     // Testing getting updates from Monitor
     for (let p = 0; p < 4; p++) {
-      const store = await client.getMonitorUpdates(p);
+      const store = await this.client.getMonitorUpdates(p);
       this.verificationChecks();
       await delay60Seconds();      
     }
@@ -86,8 +83,34 @@ class TestDriver {
       // alert("This website you tried to access was flagged as potentially malicious.");
     //}
   }
-
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const radioButtons = document.querySelectorAll('input[type="radio"]');
+
+  // // Load stored checkbox states from storage
+  // radioButtons.forEach(radio => {
+  //   const key = radio.id;
+  //   browser.storage.local.get(key, data => {
+  //     radio.checked = !!data[key];
+  //     console.log(radio.checked)
+  //   });
+  // });
+
+  // // Save checkbox state changes to storage
+  radioButtons.forEach(radio => {
+    radio.addEventListener('change', () => {
+      for (const radioButton of radioButtons) {
+          if (radioButton.checked) {
+              this.currentCA = radioButton.value;
+              break;
+          }
+      }
+      // show the output:
+      console.log(`${currentCA} selected.`)
+    });
+  });
+});
 
 var testDriver = new TestDriver()
 testDriver.runTests()
