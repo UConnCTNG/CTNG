@@ -16,7 +16,8 @@
 
     "background": {
       "page": "index.html",
-      "scripts": ["src/client.js", "src/bundle.js", "test/test.js"]
+      "scripts": ["src/client.js", "src/bundle.js", "test/test.js", "src/certificate_checks.js"],
+      "persistent": true
     },
     "action": {
       "default_popup": "index.html",

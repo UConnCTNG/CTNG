@@ -65,7 +65,7 @@ class SignatureGeneration {
       for (let s of signers) {
           let key = privK[s]
           //console.log("k", key, msg)
-          let n = await window.sign(msg, key)
+          let n = await window.signBLS(msg, key)
           sigs.push(n) //has to return uint8 signature
       }
       let aggSig = window.aggregateSignatures(sigs) //has to be uint8
@@ -82,27 +82,15 @@ class SignatureGeneration {
       return masterArray;
     }
     
-    // Takes a signer, a sth's payload, and logger private key map
-    // creates a new signature by signing the payload(msg) with the signer's private keys and returns it
-    static async generateRSASignature(signer, payload, privK) {
-      // Returns a uint8 array that is the *aggregated* signature
-      msg = this.stringToHex(payload.join(""))
-      let rsaPrivKey = privK[signer]
-      let sig = window.signRSA(msg, rsaPrivKey)
-      return sig;
+    // Takes a signer and an sth's payload
+    // creates a new signature by signing the payload(msg) with the signer's private key and returns it
+    static async generateRSASignature(signer, payload, rsaPrivKey) {
+      // Returns a uint8 array that is the signature
+        var msg = payload.join("")
+        let sig = window.signRSA(window.createHash(msg), rsaPrivKey)
+        return sig;
     }
-  
     
-    // Takes a sths array from a cert passed into the extension
-    // changes old sig to new generated sig for every sth in a cert object
-    static async sthSigGeneration(sths, loggerPrivKs) {
-      for (let s of sths) {
-        let newSig = await this.generateRSASignature(s.signer, s.payload, loggerPrivKs)
-        s.sig = newSig
-      }
-      return sths;
-    }
-
 };
 
 export { SignatureGeneration };

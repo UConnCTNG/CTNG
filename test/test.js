@@ -1,20 +1,57 @@
 import { Client } from "../src/client.js";
 import { CertificateCheck } from "../src/certificate_checks.js";
 import { certs } from "../src/config.js";
+import { SignatureGeneration } from "../src/sig-gen.js";
 
 
 class TestDriver {
   constructor() {
-    this.currentCA = null;
+    this.currentCA = "CA1";
     this.client = null;
   }
 
-  async verificationChecks() {
+  async verificationChecks(periodNum) {
     // Testing Step 1
-    // calling checkSignatures() for step 1.1: signature check on the certificate
+    // calling checkSignatures() for step 1.1: signature check on the cert's sths
     // calling checkUpdate() for step 1.2: Signature Verification on monitor update
+    console.log("Period: ", periodNum)
+    console.log("Current CA: ", this.currentCA)
+
+    let certs = browser.storage.local.get([`p${periodNum}`, "loggerPrivateKeyInfo"]);
+    certs.then(async (data) => {
+      let period = Object.keys(data)[0]
+      let privKeys = Client.getLoggerPrivateKeys(data.loggerPrivateKeyInfo)
+      console.log(privKeys)
+      
+
+      for (const [key, value] of Object.entries(data[period][this.currentCA])) {
+        var cert = window.getCert(value)
+        var sth = window.getSTH(value) // gets one STH for now
+        var issuer = window.getCertIssuer(value).array[0][0].value
+        var newSig = await SignatureGeneration.generateRSASignature(sth.signer, sth.payload, privKeys[sth.signer])
+        sth.signature = newSig;
+        //Assuming we only have 1 STH per cert for now, have to convert to an array
+        let sths = [sth]
+
+        //Checks
+        // Step 1.1: Check signatures of sths (RSA)
+        let verified = await CertificateCheck.checkSignatures(sths)
+        
+        //console.log("CheckSigs verified?", verified)
+        // Step 1.2: Check signatures of monitor update (BLS) 
+        // Checked before we store the update
+
+        // Step 2: Check if CA and Loggers are in CONs and ACCs PoM lists
+        let verified2 = await CertificateCheck.checkPOMs(periodNum, issuer)
+        console.log("CheckPOMs verified?", verified2)
+        break;
+      }
+    }, (error) => {
+      console.log(`Error in verificationChecks: ${error}`);
+    });
     
-     const signatureCheckResult = CertificateCheck.checkSignatures();
+    //const signatureCheckResult = CertificateCheck.checkSignatures();
+
     // if (!signatureCheckResult) {
     //   // Signature check failed, redirect user
     //   //await this.redirect();
@@ -33,40 +70,55 @@ class TestDriver {
   }
 
   async init() {
-    // Create and store a large JSON object that maps the test urls to the STHs
+    console.log("INITIALIZING TEST DRIVER.")
+    
+    // Initializes the client, clears local storage, and stores certs from config
+    browser.storage.local.clear()
     this.client = new Client()
     for (const [key, value] of Object.entries(certs)) {
-      //console.log(key, window.getSTH(value))
       this.client.store(key, value)
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const radioButtons = document.querySelectorAll('input[type="radio"]');
+      radioButtons.forEach(radio => {
+        radio.addEventListener('change', () => {
+          for (const radioButton of radioButtons) {
+            if (radioButton.checked) {
+              this.currentCA = radioButton.value;
+              break;
+            }
+          }
+          // show the output:
+          console.log(`${this.currentCA} selected.`)
+        });
+      });
+    });
+
+    let btn = document.getElementById("runTests")
+    btn.addEventListener("click", () => {
+      console.log("Running")
+      document.querySelector('#runTests').disabled = true;
+      const radioButtons = document.querySelectorAll('input[type="radio"]');
+      radioButtons.forEach(radio => {
+        radio.disabled = true
+      })
+      this.runTests()
+    });
   }
 
-  async runTests() {
-    console.log("INITIALIZING TEST DRIVER.")
-  
-    this.init()
 
-  
-    // Storing cert given a selected CA setting (and public key map)
-    this.client.storeCertObject()
-  
-    // Testing redirect function
-    // redirect_tester_x = 1
-    // if (redirect_tester_x < 5) { // redirect_tester_x < 5 with the condition where the certificate is invalid. 
-    //  await this.redirect();
-    //}
-  
-    // Testing getting updates from Monitor
-    for (let p = 0; p < 4; p++) {
-      const store = await this.client.getMonitorUpdates(p);
-      this.verificationChecks();
-      await delay60Seconds();      
+  async runTests() {
+    // Storing private and public key objects
+    this.client.storeKeyObjects()
+    
+    //Get updates from Monitor in 60 second intervals, and do verification checks every period
+    for (let periodNum = 0; periodNum < 4; periodNum++) {
+      const store = await this.client.getMonitorUpdates(periodNum);
+      //console.log("Got Monitor update for period ", periodNum)
+      this.verificationChecks(periodNum);
+      await delay(2);      
     }
-  
-    this.verificationChecks()
-  
-    // inside storage function call out to connector function
-    //functionSampleConnector();
   }
 
   //Front end development
@@ -85,42 +137,15 @@ class TestDriver {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const radioButtons = document.querySelectorAll('input[type="radio"]');
-
-  // // Load stored checkbox states from storage
-  // radioButtons.forEach(radio => {
-  //   const key = radio.id;
-  //   browser.storage.local.get(key, data => {
-  //     radio.checked = !!data[key];
-  //     console.log(radio.checked)
-  //   });
-  // });
-
-  // // Save checkbox state changes to storage
-  radioButtons.forEach(radio => {
-    radio.addEventListener('change', () => {
-      for (const radioButton of radioButtons) {
-          if (radioButton.checked) {
-              this.currentCA = radioButton.value;
-              break;
-          }
-      }
-      // show the output:
-      console.log(`${currentCA} selected.`)
-    });
-  });
-});
 
 var testDriver = new TestDriver()
-testDriver.runTests()
+testDriver.init()
 
-function delay60Seconds() {
+async function delay(seconds) {
   return new Promise(resolve => {
     setTimeout(() => {
-      let uselessPlaceholder = 5;
       resolve();
-    }, 60000);
+    }, seconds * 1000);
   });
 }
 

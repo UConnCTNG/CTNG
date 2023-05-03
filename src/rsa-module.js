@@ -4198,16 +4198,37 @@ window.getSTH = function(certPEM) {
   return ctngExt.STH
 }
 
-window.getCert = function(certPEM) {
+window.getSTHTest = function(certPEM) {
   var rs = require('jsrsasign');
   var rsu = require('jsrsasign-util');
   //Step 1: Parse cert
   var certNew = new rs.X509();
   certNew.readCertPEM(certPEM);
   //Step 2: Parse CTng extension
-  var ctngExt = certNew.getExtCRLDistributionPoints().array[1].dpname.full[0].uri
-  ctngExt = JSON.parse(ctngExt)
-  return ctngExt
+  for (var i = 0; i < certNew.getExtCRLDistributionPoints().array[1].dpname.full.length; i++) {
+    console.log(certNew.getExtCRLDistributionPoints().array[1].dpname.full[i].uri)
+  }
+}
+
+window.getCert = function(certPEM) {
+  var rs = require('jsrsasign');
+  var rsu = require('jsrsasign-util');
+  //Step 1: Parse cert
+  var certNew = new rs.X509();
+  certNew.readCertPEM(certPEM);
+  return certNew.getParam()
+  //Step 2: Parse CTng extension
+  // var ctngExt = certNew.getExtCRLDistributionPoints().array[1].dpname.full[0].uri
+  // ctngExt = JSON.parse(ctngExt)
+  // return ctngExt
+}
+
+window.getCertIssuer = function(certPEM) {
+  var rs = require('jsrsasign');
+  var rsu = require('jsrsasign-util');
+  var certNew = new rs.X509();
+  certNew.readCertPEM(certPEM);
+  return certNew.getIssuer()
 }
 
 window.certParser = function(publicKeys, certPEM) { 
@@ -4270,11 +4291,9 @@ window.signRSA = function(msg, rsaPrivateKey) {
   // Returns a signature on a msg from an RSA private key
   var rs = require('jsrsasign');
   var rsu = require('jsrsasign-util');
-
   var sig = new rs.KJUR.crypto.Signature({ "alg": "SHA256withRSA" });
   sig.init(rsaPrivateKey); // rsaPrivateKey of RSAKey object
   sig.updateString(msg)
-
   var sigValueHex = sig.sign()
   return sigValueHex
 }
