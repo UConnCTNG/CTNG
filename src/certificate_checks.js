@@ -135,13 +135,10 @@ class CertificateCheck {
     
     //Step 2: Check if CA and Loggers are in CONs and ACCs PoM lists
     static checkPOMs(period, certCA) {
-        console.log("POMS PERIOD", period)
-        // let gettingItem = browser.storage.local.get([`accs${period.toString()}`, `cons${period.toString()}`]);
         let storageRequest = [`accs${period.toString()}`]
         for (var p = period; p >= 0; p--) {
             storageRequest.push(`cons${p.toString()}`)
         }
-        console.log("STORAGE REQ: ", storageRequest)
         let gettingItem = browser.storage.local.get(storageRequest);
         return gettingItem.then((data) => {   
             
@@ -154,15 +151,7 @@ class CertificateCheck {
             let accs = data[Object.keys(data)[0]]
             let cons = []
 
-            // Cons0 -> nothing - 0 tot
-            // Cons1 -> 1 con - 1
-            // Cons2 -> 2 cons - 3
-            // Cons3 -> nothing - 3
-            // 3 total cons
-
-            console.log("DATA ", data)
             for (const [key, value] of Object.entries(data)) {
-                //console.log(key, value)
                 if (!key.includes("accs")) {
                     for (let i = 0; i < value.length; i++) {
                         if (!cons.includes(value[i])) {
@@ -171,8 +160,6 @@ class CertificateCheck {
                     }
                 }
             }
-
-            //console.log("CONS***:", cons)
             
             var conPOMs = []
             if (cons != undefined || cons.length > 0) {
@@ -183,8 +170,6 @@ class CertificateCheck {
                     }
                 }
             }
-
-            console.log("CONPOMS", conPOMs)
             
             var accPOMs = []
             if (accs != undefined || accs.length > 0) {
@@ -196,28 +181,34 @@ class CertificateCheck {
                 }
             }
 
-            console.log("ACCPOMS", accPOMs)
-            
-            var loggerCountCheck = (conLoggerCount == 0 && accLoggerCount == 0)
-            
-            if (conPOMs.length == 0 && accPOMs.length == 0) {
-                //console.log("Pass. 1")
-                return true; //success
+            var goodLoggers = loggers.length
+            for (let i = 0; i < loggers.length; i++) {
+                if (conPOMs.includes(loggers[i]) || accPOMs.includes(loggers[i])) {
+                    goodLoggers--;
+                }
             }
-            else if ((!conPOMs.includes(certCA) && !accPOMs.includes(certCA)) && loggerCountCheck) {
-                //console.log("Pass. 2")
-                return true; //success
-            }
-            else if ((conPOMs.includes(certCA) || accPOMs.includes(certCA)) && loggerCountCheck) {
-                //console.log("Fail. 3")
+
+            // console.log("CONPOMS: ", conPOMs)
+            // console.log("ACCPOMS: ", accPOMs)
+            // console.log("Good loggers: ", goodLoggers)
+            // console.log("CA: ", certCA)
+            
+            if (conPOMs.includes(certCA) || accPOMs.includes(certCA)) {
+                //console.log("Bad Certificate (CA in POMs)")
                 return false; //fail
+            }
+            if (goodLoggers < 1) {
+                //console.log("No good loggers")
+                return false; //fail
+            }
+            if ((!conPOMs.includes(certCA) && !accPOMs.includes(certCA)) && goodLoggers > 0) {
+                //console.log("No POM against CA and at least 1 good logger")
+                return true; //success
             }
             else {
-                //console.log("Fail. 4")
                 return false; //fail
             }
-        }
-        , (error) => {
+        }, (error) => {
         console.log(`Error: ${error}`);
         });
       }
@@ -260,7 +251,7 @@ class CertificateCheck {
         }
     }
 
-    static verifyPOI(period) {
+    static checkPOI(period) {
         let gettingItem = browser.storage.local.get(["rawCert", "cert", `sth${period.toString()}`]);
         gettingItem.then((data) => {
             let cert = data.rawCert;

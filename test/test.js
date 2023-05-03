@@ -43,30 +43,15 @@ class TestDriver {
 
         // Step 2: Check if CA and Loggers are in CONs and ACCs PoM lists
         let verified2 = await CertificateCheck.checkPOMs(periodNum, issuer)
-        console.log("CheckPOMs verified?", verified2)
+        //console.log("CheckPOMs verified?", verified2)
+
+        // Step 3: Check POI of certificate
+        let verified3 = await CertificateCheck.checkPOI(periodNum)
         break;
       }
     }, (error) => {
       console.log(`Error in verificationChecks: ${error}`);
     });
-    
-    //const signatureCheckResult = CertificateCheck.checkSignatures();
-
-    // if (!signatureCheckResult) {
-    //   // Signature check failed, redirect user
-    //   //await this.redirect();
-    //   return;
-    // }
-  
-    // Testing Step 2
-    // calling checkPOMs() for step 2: Check if CA and Loggers are in CONs and ACCs PoM lists
-    
-    //let pomResult = CertificateCheck.checkPOMs()
-  
-    // Testing Step 3
-    // calling verifyPOI() for step 3: POI verification. Check if a certificate is in the Tree head given the POI
-    
-    //let poiResult = CertificateCheck.verifyPOI(1);
   }
 
   async init() {
