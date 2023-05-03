@@ -21,7 +21,7 @@ class TestDriver {
     certs.then(async (data) => {
       let period = Object.keys(data)[0]
       let privKeys = Client.getLoggerPrivateKeys(data.loggerPrivateKeyInfo)
-      console.log(privKeys)
+      //console.log(privKeys)
       
 
       for (const [key, value] of Object.entries(data[period][this.currentCA])) {
@@ -115,9 +115,9 @@ class TestDriver {
     //Get updates from Monitor in 60 second intervals, and do verification checks every period
     for (let periodNum = 0; periodNum < 4; periodNum++) {
       const store = await this.client.getMonitorUpdates(periodNum);
-      //console.log("Got Monitor update for period ", periodNum)
+      await delay(5) //delay to ensure cons are stored before checkPOMs is ran
       this.verificationChecks(periodNum);
-      await delay(2);      
+      await delay(10);      
     }
   }
 
