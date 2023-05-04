@@ -8,7 +8,7 @@ window.getPublicKey = function(key) {
 }
 
 // Main verify function
-window.verify = async function(key, signature, message) {
+window.verifyBLS = async function(key, signature, message) {
   const bls = require('@noble/bls12-381');
   const isValid = await bls.verify(signature, message, key);
   return {isValid};
@@ -24,25 +24,14 @@ window.verifyTest = async function(key, signature, message) {
   return {isValid};
 }
 
-window.sign = async function(message, privateKey) {
-  const bls = require('@noble/bls12-381');
-  //const bls = require('@noble/curves/bls12-381');
-
-  const signature = await bls.sign(message, privateKey);
-  return signature
-  // sig = ""
-  // for (var i=0; i<signature.byteLength; i++) {
-  //   sig += String.fromCharCode(signature[i])
-  // }
-  // return sig
-}
-
-window.signTest = async function(message, privateKey) {
+// Takes a message and signs given a private key (in hex format) and returns the signature 
+window.signBLS = async function(message, privateKey) {
   const bls = require('@noble/bls12-381');
   const signature = await bls.sign(message, privateKey);
   return signature
 }
 
+// Verifies an aggregate signature given an array of public keys, signatures, and a message
 window.verifyAggregate = async function(publicKeys, signatures, message) {
   const bls = require('@noble/bls12-381');
   const aggPublicKey = bls.aggregatePublicKeys(publicKeys);
@@ -51,18 +40,19 @@ window.verifyAggregate = async function(publicKeys, signatures, message) {
   return isValid
 }
 
+// Takes an array of keys and aggregates the public keys
 window.aggregatePublicKeys = function(keys) {
   const bls = require('@noble/bls12-381');
-
   return bls.aggregatePublicKeys(keys);
 }
 
+// Takes an array of signatures and aggregates the signatures
 window.aggregateSignatures = function(sigs) {
   const bls = require('@noble/bls12-381');
-
   return bls.aggregateSignatures(sigs)
 }
 
+// Testing function. Good for REFERENCE!
 window.aggTest = async function() {
   const bls = require('@noble/bls12-381');
   const privateKey = '67d53f170b908cabb9eb326c3c337762d59289a8fec79f7bc9254b584b73265c';

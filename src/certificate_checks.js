@@ -1,6 +1,7 @@
 import { SignatureGeneration } from "./sig-gen.js"
 class CertificateCheck {
     
+    // Verifies signatures of monitor update objects using BLS
     static async verifyUpdate(masterArray, pubKeyMap) {
         let verified = false
         for (let o of masterArray) {
@@ -213,76 +214,48 @@ class CertificateCheck {
         });
       }
 
-
-    // Step 3: POI verification. Check if a certificate is in the Tree head given the POI
-    
-    // Reference from Jie's Code:
-    // func doubleHash(data1 []byte, data2 []byte) []byte {
-    //     if data1[0] < data2[0] {
-    //         return hash(append(data1, data2...))
-    //     } else {
-    //         return hash(append(data2, data1...))
-    //     }
-    // }
-    // func VerifyPOI(sth STH, poi CA.ProofOfInclusion, cert x509.Certificate) bool {
-    //     certBytes, _ := json.Marshal(cert)
-    //     testHash := hash(certBytes)
-    //     n := len(poi.SiblingHashes)
-    //     poi.SiblingHashes[n-1] = poi.NeighborHash
-    //     for i := n - 1; i >= 0; i-- {
-    //         testHash = doubleHash(poi.SiblingHashes[i], testHash)
-    //     }
-    //     return string(testHash) == string(sth.RootHash)
-    // }
-    
+    // Double hash function referenced from CTNG Go code repo
     doubleHash(data1, data2) {
-        // Jie's doubleHash function go code:
-        // func doubleHash(data1 []byte, data2 []byte) []byte {
-        //     if data1[0] < data2[0] {
-        //         return hash(append(data1, data2...))
-        //     } else {
-        //         return hash(append(data2, data1...))
-        //     }
-        // }
         if (data1 < data2) {
             return window.createHash(data1.concat(data2))
         } else {
             return window.createHash(data2.concat(data1))
         }
     }
-
+    
+    // Step 3: POI verification. Check if a certificate is in the Tree head given the POI
     static checkPOI(period, cert) {
         //console.log("CERT:", cert)
-        console.log("PAYLOAD:", cert.payload)
+        console.log("CERT STH:", cert)
         let gettingItem = browser.storage.local.get([`sths${period.toString()}`]);
         gettingItem.then((data) => {
             console.log("STH_FULL:", data)
-            // let cert = data.rawCert;
-            // cert = SignatureGeneration.stringToUTF8Bytes(cert)
-            // console.log("CERT: ", cert)
-            // let testHash = window.createHash(cert)
-            // console.log("TEST HASH: ", testHash)
-            // let poi = data.cert.POI; // object with siblingHashes and neighborHash
-            // let siblingHashes = poi.SiblingHashes // array of sibling hashes
-            // console.log("SIB HASHs: ", siblingHashes)
-            // let neighborHash = poi.NeighborHash // neighbor hash string
-            // console.log("NEIG HASH: ", neighborHash)
-            // console.log(Object.keys(data))
-            // let rootHash = data[Object.keys(data)[2]].payload[1]
+            let cert = data.rawCert;
+            cert = SignatureGeneration.stringToUTF8Bytes(cert)
+            console.log("CERT: ", cert)
+            let testHash = window.createHash(cert)
+            console.log("TEST HASH: ", testHash)
+            let poi = data.cert.POI; // object with siblingHashes and neighborHash
+            let siblingHashes = poi.SiblingHashes // array of sibling hashes
+            console.log("SIB HASHs: ", siblingHashes)
+            let neighborHash = poi.NeighborHash // neighbor hash string
+            console.log("NEIG HASH: ", neighborHash)
+            console.log(Object.keys(data))
+            let rootHash = data[Object.keys(data)[2]].payload[1]
 
-            // rootHash = rootHash.split("\"")[11] // json string
-            // // rootHash[11] is \ufffd%\ufffd\ufffd\ufffd[PV\ufffd\u0001?\ufffd3M\u0007$\ufffdS\ufffd\n\ufffdX\ufffd\ufffd\ufffdpn\ufffd\ufffd\u0019_(
-            // console.log("ROOT HASH STRING: ", rootHash)
-            // rootHash = SignatureGeneration.stringToUTF8Bytes(rootHash)
-            // console.log("ROOT HASH BYTES: ", rootHash)
-            // let n = siblingHashes.length
-            // siblingHashes[n-1] = neighborHash
-            // for (let i = n-1; i >= 0; i--) {
-            //     testHash = doubleHash(siblingHashes[i], testHash)
-            // }
-            // console.log(testHash)
-            // console.log(testHash == rootHash)
-            // return String(testHash) == String(rootHash)
+            rootHash = rootHash.split("\"")[11] // json string
+            // rootHash[11] is \ufffd%\ufffd\ufffd\ufffd[PV\ufffd\u0001?\ufffd3M\u0007$\ufffdS\ufffd\n\ufffdX\ufffd\ufffd\ufffdpn\ufffd\ufffd\u0019_(
+            console.log("ROOT HASH STRING: ", rootHash)
+            rootHash = SignatureGeneration.stringToUTF8Bytes(rootHash)
+            console.log("ROOT HASH BYTES: ", rootHash)
+            let n = siblingHashes.length
+            siblingHashes[n-1] = neighborHash
+            for (let i = n-1; i >= 0; i--) {
+                testHash = doubleHash(siblingHashes[i], testHash)
+            }
+            console.log(testHash)
+            console.log(testHash == rootHash)
+            return String(testHash) == String(rootHash)
 
         }, (error) => {
             console.log(`Error: ${error}`);

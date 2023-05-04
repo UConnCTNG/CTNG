@@ -13,7 +13,6 @@
         }
       ],
     "description": "The CTng browser extension.",
-
     "background": {
       "page": "index.html",
       "scripts": ["src/client.js", "src/bundle.js", "test/test.js", "src/certificate_checks.js"],
@@ -28,15 +27,14 @@
     "icons": {
       "48": "images/icon.png"
     },
-
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
-
     "permissions": [
         "webNavigation",
         "webRequest",
         "webRequestBlocking",
         "<all_urls>",
         "storage",
-        "unlimitedStorage"
+        "unlimitedStorage",
+        "tabs"
     ]
 }

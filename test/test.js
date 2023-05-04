@@ -10,6 +10,7 @@ class TestDriver {
     this.client = null;
   }
 
+  // Drives the verification check functions, testing the certificates of the current CA setting
   async verificationChecks(periodNum) {
     // Testing Step 1
     // calling checkSignatures() for step 1.1: signature check on the cert's sths
@@ -36,6 +37,12 @@ class TestDriver {
         //Checks
         // Step 1.1: Check signatures of sths (RSA)
         let verified = await CertificateCheck.checkSignatures(sths)
+
+        if (verified) {
+          // Signature check failed, redirect user
+          await this.redirect();
+          return;
+        }
         
         //console.log("CheckSigs verified?", verified)
         // Step 1.2: Check signatures of monitor update (BLS) 
@@ -46,7 +53,7 @@ class TestDriver {
         //console.log("CheckPOMs verified?", verified2)
 
         // Step 3: Check POI of certificate
-        let verified3 = await CertificateCheck.checkPOI(periodNum, sth)
+        //let verified3 = await CertificateCheck.checkPOI(periodNum, sth)
         break;
       }
     }, (error) => {
@@ -54,6 +61,7 @@ class TestDriver {
     });
   }
 
+  // Initializes the extension by prepping local storage and listening for a button press to run tests
   async init() {
     console.log("INITIALIZING TEST DRIVER.")
     
@@ -93,6 +101,7 @@ class TestDriver {
   }
 
 
+  // Stores config.js objects and simulates getting monitor updates periodically while verifying certificates as well
   async runTests() {
     // Storing private and public key objects
     this.client.storeKeyObjects()
@@ -102,30 +111,40 @@ class TestDriver {
       const store = await this.client.getMonitorUpdates(periodNum);
       await delay(5) //delay to ensure cons are stored before checkPOMs is ran
       this.verificationChecks(periodNum);
-      await delay(10);      
+      await delay(60);      
     }
   }
 
-  //Front end development
+  // Conducts a tab redirect if at any point verification fails
   async redirect() {
-   // if (window.history.length > 1) {
-      // Navigate back to the previous website
-      // window.history.back(-1);
+    if (window.history.length > 1) {
       // Display an alert with the reason for the redirect
       alert("The website you tried to access was flagged as potentially malicious and was redirected.");
-    //} else {
-      // If there is no previous website, route to google
-      // window.location.href = "https://www.google.com/";
+      // Navigate back to the previous website
+      window.history.back(-1);
+    } else {
       // Display an alert with the reason for the redirect
-      // alert("This website you tried to access was flagged as potentially malicious.");
-    //}
+      alert("This website you tried to access was flagged as potentially malicious.");
+      // Functionality for getting the current tab and redirecting. Does google for now
+      let query = browser.tabs.query({ currentWindow: true })
+      query.then((data) => {
+        for (let i = 0; i < data.length; i++) {
+          if (data[i].active) {
+            browser.tabs.update(
+              data[i].id,
+              { active: true, url: "https://google.com" }
+            )
+          }
+        }
+      })
+    }
   }
 }
-
 
 var testDriver = new TestDriver()
 testDriver.init()
 
+// Helper that stops code execution for a period of time
 async function delay(seconds) {
   return new Promise(resolve => {
     setTimeout(() => {

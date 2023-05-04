@@ -1,13 +1,9 @@
+// Helper function for conversion
 function stringToUTF8Bytes(string) {
   return new TextEncoder().encode(string);
 }
 
-// function bytesToHex(byteArray) {
-//   return Array.from(byteArray, function(byte) {
-//     return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-//   }).join('')
-// }
-
+// Helper function
 function bytesToHex(bytes) {
   return Array.from(
   bytes,
@@ -15,6 +11,7 @@ function bytesToHex(bytes) {
   ).join("");
 }
 
+// Function that takes a certificate PEM string and returns the STH field
 window.getSTH = function(certPEM) {
   var rs = require('jsrsasign');
   var rsu = require('jsrsasign-util');
@@ -27,6 +24,7 @@ window.getSTH = function(certPEM) {
   return ctngExt.STH
 }
 
+// Testing function for printing the CTNG extension STH field 
 window.getSTHTest = function(certPEM) {
   var rs = require('jsrsasign');
   var rsu = require('jsrsasign-util');
@@ -39,6 +37,7 @@ window.getSTHTest = function(certPEM) {
   }
 }
 
+// Function that takes a certificate PEM and returns its respective fields
 window.getCert = function(certPEM) {
   var rs = require('jsrsasign');
   var rsu = require('jsrsasign-util');
@@ -46,12 +45,9 @@ window.getCert = function(certPEM) {
   var certNew = new rs.X509();
   certNew.readCertPEM(certPEM);
   return certNew.getParam()
-  //Step 2: Parse CTng extension
-  // var ctngExt = certNew.getExtCRLDistributionPoints().array[1].dpname.full[0].uri
-  // ctngExt = JSON.parse(ctngExt)
-  // return ctngExt
 }
 
+// Function that takes in a certificate PEM and returns a certificate issuer
 window.getCertIssuer = function(certPEM) {
   var rs = require('jsrsasign');
   var rsu = require('jsrsasign-util');
@@ -60,6 +56,7 @@ window.getCertIssuer = function(certPEM) {
   return certNew.getIssuer()
 }
 
+// This is a function used for REFERENCE and TESTING. Parses a certificate and prints appropriate information.
 window.certParser = function(publicKeys, certPEM) { 
   //Takes pubK map in for getting E and N of signer
   //Need to require jsrsasign here
@@ -103,6 +100,7 @@ window.certParser = function(publicKeys, certPEM) {
   console.log("VERIFIED? ", verified)
 }
 
+// Verifies an RSA signature based on the RSA Public Key object and a message (must be hashed before)
 window.verifyRSA = function(sigValueHex, rsaPublicKey, msg) {
   // Returns a boolean based on whether we can verify a message based on the signature and public key
   var rs = require('jsrsasign');
@@ -116,6 +114,7 @@ window.verifyRSA = function(sigValueHex, rsaPublicKey, msg) {
   return isValid
 }
 
+// Signs an RSA message (it must be hashed before) given an RSA Private Key Object
 window.signRSA = function(msg, rsaPrivateKey) {
   // Returns a signature on a msg from an RSA private key
   var rs = require('jsrsasign');
@@ -127,6 +126,7 @@ window.signRSA = function(msg, rsaPrivateKey) {
   return sigValueHex
 }
 
+// Creates an RSA Public Key object given its necessary params
 window.createPublicKeyRSA = function(params) {
   // Creates a public key object from E and N
   var rs = require('jsrsasign');
@@ -139,6 +139,7 @@ window.createPublicKeyRSA = function(params) {
   return pubKey
 }
 
+// Creates an RSA Private Key object given its necessary params
 window.createPrivateKeyRSA = function(n1, e1, d1, p1, q1, dp1, dq1, co1) {
   var rs = require('jsrsasign');
   var rsu = require('jsrsasign-util');
@@ -146,7 +147,7 @@ window.createPrivateKeyRSA = function(n1, e1, d1, p1, q1, dp1, dq1, co1) {
   return keyObj
 }
 
-
+// Gets a certificate's signature from it's PEM string
 window.getCertSignature = function(cert) {
   // Returns the signature on a certificate in hex
   var rs = require('jsrsasign');
@@ -156,6 +157,7 @@ window.getCertSignature = function(cert) {
   return c.getSignatureValueHex()
 }
 
+// Generates an RSA Private/Public key pair
 window.generateKeyPair = function() {
   // Generates an RSA private and public key pair
   var rs = require('jsrsasign');
@@ -169,25 +171,7 @@ window.generateKeyPair = function() {
   return [rsaPublicKey, rsaPrivateKey]
 }
 
-// if (alg == "RSA") {
-//   var keylen = keylenOrCurve;
-//   var prvKey = new RSAKey();
-//   prvKey.generate(keylen, '10001');
-//   prvKey.isPrivate = true;
-//   prvKey.isPublic = true;
-  
-//   var pubKey = new RSAKey();
-//   var hN = prvKey.n.toString(16);
-//   var hE = prvKey.e.toString(16);
-//   pubKey.setPublic(hN, hE);
-//   pubKey.isPrivate = false;
-//   pubKey.isPublic = true;
-  
-//   var result = {};
-//   result.prvKeyObj = prvKey;
-//   result.pubKeyObj = pubKey;
-//   return result;
-
+// 
 window.getPublicKeyRSA = function(cert) {
   // Gets the public key from a certificate
   var rs = require('jsrsasign');
@@ -197,6 +181,7 @@ window.getPublicKeyRSA = function(cert) {
   return c.getPublicKey()
 }
 
+// Simulates verifying the signatuer of a PEM formatted certificate, using its public key
 window.testRSA = function(rawCert) {
   var rs = require('jsrsasign');
   var c = new rs.X509();
@@ -211,6 +196,7 @@ window.testRSA = function(rawCert) {
   console.log("PubKey, Sig, ", {pubKey, sig})
 }
 
+// Converts an RSA signature (in hex) to a base64 buffer
 window.convertRSASignature = function(signature) {
   const hexSignature = signature.replace(/:/g, '');
   const buffer = Buffer.from(hexSignature, 'hex').toString('base64');

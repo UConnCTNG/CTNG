@@ -8,6 +8,7 @@ class Client {
     this.sites = sites; 
   }
 
+  // Logs the changes made in storage to the user, primarily for testing purposes
   async logStorageUpdate(changes) {
     const updatedItems = Object.keys(changes)
     for (const item of updatedItems) {
@@ -15,6 +16,7 @@ class Client {
     }
   }
 
+  // Gets a certificate from local storage
   static getCertificateFromStorage(serialNumber) {
     // returns cert object
     try {
@@ -26,6 +28,7 @@ class Client {
     }
   }
 
+  // Parses information from a securityInfo object fetched from the browser to create and store a cert object
   parseCertificate(securityInfo) {
     var cert = securityInfo.certificates[0]
     var subjectString = cert.subject.split('=')
@@ -55,6 +58,7 @@ class Client {
     return certInfo
   }
 
+  // Stores certificate data in storage and verifies it was stored
   async storeCertificate(data) {
     // returns status (1 if successfully stored)
     // currently storing as a serial number: certInfo pair
@@ -66,6 +70,7 @@ class Client {
     return 0
   }
 
+  // Tests whether a cert was stored correctly
   isCertificateStored(serialNumber) {
     try {
       browser.storage.local.get(serialNumber)
@@ -76,10 +81,12 @@ class Client {
     return true
   }
 
+  // Deletes a cert from storage (this was in question of necessity)
   static deleteCertificateFromStorage() {
     // returns status
   }
 
+  // Gets monitor updates for a given period through an HTTP request
   async getMonitorUpdates(period) {
     fetch(`http://localhost:3000/?period=${period}`)
     .then(response => response.text())
@@ -135,10 +142,12 @@ class Client {
     return period + 1;
   }
 
+  // Generic function used to store a given object under a given name
   store(name, obj) {
     browser.storage.local.set({ [name]: obj });
   }
 
+  // Creates an RSAKey object that is a private key
   static getPrivateKeyObject(r) {
     let n = BigInt(r.N).toString(16) //SignatureGeneration.stringToHex(r.N)
     let e = BigInt(r.E).toString(16) //SignatureGeneration.stringToHex(r.E)
@@ -152,6 +161,7 @@ class Client {
     return privK
   }
 
+  // Creates an object that key-value pairs a logger address with its RSAKey private key object
   static getLoggerPrivateKeys(loggerPrivateKeyInfo) {
     var logRSAPrivs = {
       "localhost:9000": null,
@@ -166,6 +176,7 @@ class Client {
     return logRSAPrivs
   }
 
+  // Stores public and private key maps from config.js in local storage
   storeKeyObjects(cert) {
     
     browser.storage.local.set({ pubK });
