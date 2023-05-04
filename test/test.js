@@ -46,7 +46,7 @@ class TestDriver {
         //console.log("CheckPOMs verified?", verified2)
 
         // Step 3: Check POI of certificate
-        let verified3 = await CertificateCheck.checkPOI(periodNum)
+        let verified3 = await CertificateCheck.checkPOI(periodNum, sth)
         break;
       }
     }, (error) => {

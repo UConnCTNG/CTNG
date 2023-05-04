@@ -120,7 +120,7 @@ class Client {
   
       const check = await CertificateCheck.checkUpdate(period, sths, revs, accs, cons)
 
-  
+      console.log("STHS in client: ", sths)
       let sthName = `sths${period}`
       browser.storage.local.set({ [sthName]:sths })
       let timestampName = `timestamps${period}`
